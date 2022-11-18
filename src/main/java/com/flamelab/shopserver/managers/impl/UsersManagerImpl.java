@@ -12,11 +12,13 @@ import com.flamelab.shopserver.managers.UsersManager;
 import com.flamelab.shopserver.services.ShopsService;
 import com.flamelab.shopserver.services.UsersService;
 import com.flamelab.shopserver.services.WalletsService;
+import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.flamelab.shopserver.enums.AmountActionType.DECREASE;
 import static com.flamelab.shopserver.enums.AmountActionType.INCREASE;
@@ -40,6 +42,11 @@ public class UsersManagerImpl implements UsersManager {
     @Override
     public TransferUserDto getUserById(ObjectId userId) {
         return usersService.getUserById(userId);
+    }
+
+    @Override
+    public Object getUserBy(Map<FieldNames, Object> criterias) {
+        return usersService.getUserBy(criterias);
     }
 
     @Override

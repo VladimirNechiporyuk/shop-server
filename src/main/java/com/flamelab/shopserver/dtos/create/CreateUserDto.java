@@ -10,5 +10,6 @@ import lombok.*;
 public class CreateUserDto extends CommonCreateDto {
 
     private String name;
+    private String email;
 
 }

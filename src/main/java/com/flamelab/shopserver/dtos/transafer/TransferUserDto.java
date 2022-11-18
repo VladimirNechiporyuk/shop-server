@@ -16,6 +16,7 @@ import java.util.List;
 public class TransferUserDto extends CommonTransferDto {
 
     private String name;
+    private String email;
     @JsonSerialize(using = StringJsonSerializer.class)
     private ObjectId walletId;
     private List<Product> basket;

@@ -1,6 +1,10 @@
 package com.flamelab.shopserver.utiles.naming;
 
+import com.flamelab.shopserver.exceptions.ResourceException;
 import jdk.jfr.Description;
+import org.springframework.http.HttpStatus;
+
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @Description("Fields naming is using for correct mapping from one object type to other during mapping and also for actions in data base" +
         "Fields related to classes in packages:" +
@@ -14,6 +18,7 @@ public enum FieldNames {
     CREATED_DATE__FIELD_APPELLATION("createdDate"),
     LAST_UPDATED_DATE__FIELD_APPELLATION("lastUpdatedDate"),
     NAME__FIELD_APPELLATION("name"),
+    EMAIL__FIELD_APPELLATION("email"),
     WALLET_ID__FIELD_APPELLATION("walletId"),
     BASKET__FIELD_APPELLATION("basket"),
     OWNER_ID__FIELD_APPELLATION("ownerId"),
@@ -34,20 +39,11 @@ public enum FieldNames {
     }
 
     public static FieldNames getFieldAppellationByName(String name) {
-        switch (name) {
-            case "id" -> {
-                return ID__FIELD_APPELLATION;
+        for (FieldNames fieldName : FieldNames.values()) {
+            if (fieldName.getField().equals(name)) {
+                return fieldName;
             }
-            case "createdDate" -> {
-                return CREATED_DATE__FIELD_APPELLATION;
-            }
-            case "lastUpdatedDate" -> {
-                return LAST_UPDATED_DATE__FIELD_APPELLATION;
-            }
-            case "name" -> {
-                return NAME__FIELD_APPELLATION;
-            }
-            default -> throw new RuntimeException(String.format("There is no field with name: %s", name));
         }
+        throw new ResourceException(NO_CONTENT, String.format("There is no field appellation with name: '%s'", name));
     }
 }

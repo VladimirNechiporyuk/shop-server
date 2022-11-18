@@ -5,6 +5,7 @@ import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.managers.UsersManager;
+import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -35,6 +37,13 @@ public class UsersController {
         return ResponseEntity
                 .status(OK)
                 .body(usersManager.getUserById(userId));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getUserBy(@RequestParam Map<FieldNames, Object> criterias) {
+        return ResponseEntity
+                .status(OK)
+                .body(usersManager.getUserBy(criterias));
     }
 
     @GetMapping("/all")

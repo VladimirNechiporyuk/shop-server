@@ -14,6 +14,7 @@ import java.util.List;
 public class User extends CommonEntity {
 
     private String name;
+    private String email;
     private ObjectId walletId;
     private List<Product> basket;
 

@@ -10,5 +10,6 @@ import lombok.*;
 public class UpdateUserDto extends CommonUpdateDto {
 
     private String name;
+    private String email;
 
 }
