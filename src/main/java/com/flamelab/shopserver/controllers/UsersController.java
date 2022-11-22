@@ -29,6 +29,7 @@ public class UsersController {
     public ResponseEntity<TransferUserDto> createUser(@RequestBody CreateUserDto createUserDto) {
         return ResponseEntity
                 .status(CREATED)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.createUser(createUserDto));
     }
 
@@ -36,6 +37,7 @@ public class UsersController {
     public ResponseEntity<?> getUserById(@PathVariable("userId") ObjectId userId) {
         return ResponseEntity
                 .status(OK)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.getUserById(userId));
     }
 
@@ -43,6 +45,7 @@ public class UsersController {
     public ResponseEntity<?> getUserBy(@RequestParam Map<FieldNames, Object> criterias) {
         return ResponseEntity
                 .status(OK)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.getUserBy(criterias));
     }
 
@@ -50,6 +53,7 @@ public class UsersController {
     public ResponseEntity<List<TransferUserDto>> getAllUsers() {
         return ResponseEntity
                 .status(OK)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.getAllUsers());
     }
 
@@ -57,6 +61,7 @@ public class UsersController {
     public ResponseEntity<?> getUserWallet(@PathVariable("userId") ObjectId userId) {
         return ResponseEntity
                 .status(OK)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.getUserWallet(userId));
     }
 
@@ -64,6 +69,7 @@ public class UsersController {
     public ResponseEntity<?> updateUserData(@PathVariable("userId") ObjectId userId, @RequestBody UpdateUserDto updateUserDto) {
         return ResponseEntity
                 .status(OK)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.updateUserData(userId, updateUserDto));
     }
 
@@ -71,6 +77,7 @@ public class UsersController {
     public ResponseEntity<?> deposit(@PathVariable("userId") ObjectId userId, @PathVariable("amount") int amount) {
         return ResponseEntity
                 .status(OK)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.deposit(userId, amount));
     }
 
@@ -78,6 +85,7 @@ public class UsersController {
     public ResponseEntity<?> buyProducts(@RequestParam ObjectId userId, @RequestParam ObjectId shopId, @RequestParam ProductName productName, @RequestParam int amount) {
         return ResponseEntity
                 .status(OK)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.buyProducts(userId, shopId, productName, amount));
     }
 
@@ -86,6 +94,7 @@ public class UsersController {
         usersManager.deleteUser(userId);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
+                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .build();
     }
 
