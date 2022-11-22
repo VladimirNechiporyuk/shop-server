@@ -8,6 +8,7 @@ import com.flamelab.shopserver.managers.UsersManager;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.web.bind.annotation.RequestMethod.OPTIONS;
 
 @RestController
 @RequestMapping("/users")
@@ -25,11 +26,22 @@ public class UsersController {
 
     private final UsersManager usersManager;
 
+    @RequestMapping(method = OPTIONS)
+    public ResponseEntity<?> returnOptionHeaders() {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Access-Control-Allow-Origin", "*");
+        httpHeaders.add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+        httpHeaders.add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+        return ResponseEntity
+                .status(NO_CONTENT)
+                .headers(httpHeaders)
+                .build();
+    }
+
     @PostMapping
     public ResponseEntity<TransferUserDto> createUser(@RequestBody CreateUserDto createUserDto) {
         return ResponseEntity
                 .status(CREATED)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.createUser(createUserDto));
     }
 
@@ -37,7 +49,6 @@ public class UsersController {
     public ResponseEntity<?> getUserById(@PathVariable("userId") ObjectId userId) {
         return ResponseEntity
                 .status(OK)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.getUserById(userId));
     }
 
@@ -45,7 +56,6 @@ public class UsersController {
     public ResponseEntity<?> getUserBy(@RequestParam Map<FieldNames, Object> criterias) {
         return ResponseEntity
                 .status(OK)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.getUserBy(criterias));
     }
 
@@ -53,7 +63,6 @@ public class UsersController {
     public ResponseEntity<List<TransferUserDto>> getAllUsers() {
         return ResponseEntity
                 .status(OK)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.getAllUsers());
     }
 
@@ -61,7 +70,6 @@ public class UsersController {
     public ResponseEntity<?> getUserWallet(@PathVariable("userId") ObjectId userId) {
         return ResponseEntity
                 .status(OK)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.getUserWallet(userId));
     }
 
@@ -69,7 +77,6 @@ public class UsersController {
     public ResponseEntity<?> updateUserData(@PathVariable("userId") ObjectId userId, @RequestBody UpdateUserDto updateUserDto) {
         return ResponseEntity
                 .status(OK)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.updateUserData(userId, updateUserDto));
     }
 
@@ -77,7 +84,6 @@ public class UsersController {
     public ResponseEntity<?> deposit(@PathVariable("userId") ObjectId userId, @PathVariable("amount") int amount) {
         return ResponseEntity
                 .status(OK)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.deposit(userId, amount));
     }
 
@@ -85,7 +91,6 @@ public class UsersController {
     public ResponseEntity<?> buyProducts(@RequestParam ObjectId userId, @RequestParam ObjectId shopId, @RequestParam ProductName productName, @RequestParam int amount) {
         return ResponseEntity
                 .status(OK)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .body(usersManager.buyProducts(userId, shopId, productName, amount));
     }
 
@@ -94,7 +99,6 @@ public class UsersController {
         usersManager.deleteUser(userId);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
-                .header("Access-Control-Allow-Origin", "http://localhost:8052")
                 .build();
     }
 
