@@ -26,18 +26,6 @@ public class UsersController {
 
     private final UsersManager usersManager;
 
-    @RequestMapping(method = OPTIONS)
-    public ResponseEntity<?> returnOptionHeaders() {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Access-Control-Allow-Origin", "*");
-        httpHeaders.add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-        httpHeaders.add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-        return ResponseEntity
-                .status(NO_CONTENT)
-                .headers(httpHeaders)
-                .build();
-    }
-
     @PostMapping
     public ResponseEntity<TransferUserDto> createUser(@RequestBody CreateUserDto createUserDto) {
         return ResponseEntity
