@@ -1,5 +1,6 @@
 package com.flamelab.shopserver.utiles;
 
+import com.flamelab.shopserver.dtos.update.CommonUpdateDto;
 import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.utiles.data.SideOfValue;
 import com.flamelab.shopserver.utiles.naming.DbCollectionNames;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public interface DbEntityUtility <E extends CommonEntity> {
+public interface DbEntityUtility <E extends CommonEntity, U extends CommonUpdateDto> {
 
     E saveEntity(E entityForSaving, Class<E> targetClass, DbCollectionNames dbCollectionName);
 
@@ -29,7 +30,7 @@ public interface DbEntityUtility <E extends CommonEntity> {
 
     List<E> findAllInCollection(List<Class<E>> entityClassList, DbCollectionNames dbCollectionName);
 
-    E updateEntity(E entity, Class<E> entityClass, Map<FieldNames, Object> fieldsWithNewData, DbCollectionNames dbCollectionName);
+    E updateEntity(Map<FieldNames, Object> criterias, U updatedDto, Class<U> updateDtoClass, Class<E> entityClass, DbCollectionNames dbCollectionName);
 
     boolean isDbEntityListParameterContainsValue(ObjectId entityId, FieldNames entityFieldListName, Object searchedValue, Class<E> targetClass, DbCollectionNames dbCollectionName);
 

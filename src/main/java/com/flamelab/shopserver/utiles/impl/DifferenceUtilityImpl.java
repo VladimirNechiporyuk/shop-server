@@ -35,7 +35,6 @@ public class DifferenceUtilityImpl<T extends ObjectWithData> implements Differen
         Map<FieldNames, Object> changes = new HashMap<>();
         for (String fieldName : fieldsNames) {
             if (objectBeforeChangesFieldsWithValues.containsKey(fieldName)
-                    && objectBeforeChangesFieldsWithValues.get(fieldName) != null
                     && updatedObjectFieldsWithValues.containsKey(fieldName)
                     && updatedObjectFieldsWithValues.get(fieldName) != null
                     && !objectBeforeChangesFieldsWithValues.get(fieldName).equals(updatedObjectFieldsWithValues.get(fieldName))) {

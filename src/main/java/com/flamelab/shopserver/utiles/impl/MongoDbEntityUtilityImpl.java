@@ -1,23 +1,24 @@
 package com.flamelab.shopserver.utiles.impl;
 
+import com.flamelab.shopserver.dtos.update.CommonUpdateDto;
 import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.exceptions.MoreThanOneEntityExistsByQueryException;
 import com.flamelab.shopserver.exceptions.NoExistentEntityException;
 import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.utiles.ClassUtility;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
+import com.flamelab.shopserver.utiles.DifferenceUtility;
+import com.flamelab.shopserver.utiles.MapperUtility;
 import com.flamelab.shopserver.utiles.data.SideOfValue;
 import com.flamelab.shopserver.utiles.naming.DbCollectionNames;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -32,14 +33,16 @@ import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLA
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class MongoDbEntityUtilityImpl<E extends CommonEntity> implements DbEntityUtility<E> {
+public class MongoDbEntityUtilityImpl<E extends CommonEntity, U extends CommonUpdateDto> implements DbEntityUtility<E, U> {
 
     private final MongoTemplate mongoTemplate;
     private final ClassUtility<E> classUtility;
+    private final MapperUtility<U, E> mapperUtilityFromUpdateDtoToEntity;
+    private final DifferenceUtility<E> differenceUtility;
     private final String separateSymbol = ",";
 
     public E saveEntity(E entityForSaving, Class<E> targetClass, DbCollectionNames dbCollectionName) {
-        return mongoTemplate.save(entityForSaving, dbCollectionName.getName());
+        return mongoTemplate.save(entityForSaving, dbCollectionName.getCollection());
     }
 
     public E findOneByOrThrow(Map<FieldNames, Object> criterias, Class<E> searchedClass, DbCollectionNames dbCollectionName) {
@@ -49,29 +52,29 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity> implements DbEntit
         } catch (MoreThanOneEntityExistsByQueryException e) {
             throw new MoreThanOneEntityExistsByQueryException(String.format(
                     "More than one entity found by query with criterias: %s." +
-                            "\nPlease try to find needed entity using id or several criterias", convertCriterias(criterias)));
+                            "\nPlease try to find needed entity using id or several criterias", parseCriterias(criterias)));
         }
         if (entity == null) {
             throw new NoExistentEntityException(String.format("No entity found in collection '%s' by class %s and criterias %s.",
-                    dbCollectionName, searchedClass, convertCriterias(criterias)));
+                    dbCollectionName, searchedClass, parseCriterias(criterias)));
         }
         return entity;
     }
 
     public E findOneBy(Map<FieldNames, Object> criterias, Class<E> searchedClass, DbCollectionNames dbCollectionName) {
         Query query = buildQuery(criterias);
-        List<E> entitiesFoundFromDb = mongoTemplate.find(query, searchedClass, dbCollectionName.getName());
+        List<E> entitiesFoundFromDb = mongoTemplate.find(query, searchedClass, dbCollectionName.getCollection());
         if (entitiesFoundFromDb.size() == 1) {
             return entitiesFoundFromDb.stream().findFirst().get();
         } else if (entitiesFoundFromDb.size() > 1){
-            throw new MoreThanOneEntityExistsByQueryException(String.format("More then one entity found by criterias '%s' in collection '%s'", convertCriterias(criterias), dbCollectionName.getName()));
+            throw new MoreThanOneEntityExistsByQueryException("More then one entity found");
         } else {
-            throw new NoExistentEntityException(String.format("No existing entities found by criterias '%s' in collection '%s'", convertCriterias(criterias), dbCollectionName.getName()));
+            throw new NoExistentEntityException("No existing entities found");
         }
     }
 
     public List<E> findAllBy(Map<FieldNames, Object> criterias, Class<E> searchedClass, DbCollectionNames dbCollectionName) {
-        return mongoTemplate.find(buildQuery(criterias), searchedClass, dbCollectionName.getName());
+        return mongoTemplate.find(buildQuery(criterias), searchedClass, dbCollectionName.getCollection());
     }
 
     public List<E> findAllWhichContainsAnyOfCriteria(Map<FieldNames, Object> criterias, List<Class<E>> searchedClasses, DbCollectionNames dbCollectionName) {
@@ -96,11 +99,11 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity> implements DbEntit
     }
 
     public List<E> findAllWhichContainsPartOfParameterFromTheSide(Map<FieldNames, Object> criterias, SideOfValue side, Class<E> searchedClass, DbCollectionNames dbCollectionName) {
-        return mongoTemplate.find(buildQueryWithAnyValueFromSide(criterias, side), searchedClass, dbCollectionName.getName());
+        return mongoTemplate.find(buildQueryWithAnyValueFromSide(criterias, side), searchedClass, dbCollectionName.getCollection());
     }
 
     public List<E> findAllByClass(Class<E> entityClass, DbCollectionNames dbCollectionName) {
-        return mongoTemplate.findAll(entityClass, dbCollectionName.getName());
+        return mongoTemplate.findAll(entityClass, dbCollectionName.getCollection());
     }
 
     public List<E> findAllInCollection(List<Class<E>> entityClassList, DbCollectionNames dbCollectionName) {
@@ -111,9 +114,18 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity> implements DbEntit
         return resultList;
     }
 
-    public E updateEntity(E entity, Class<E> entityClass, Map<FieldNames, Object> fieldsWithNewData, DbCollectionNames dbCollectionName) {
-        entity = classUtility.setValuesForFields(entity, entityClass, fieldsWithNewData);
-        return mongoTemplate.save(entity, dbCollectionName.getName());
+    public E updateEntity(Map<FieldNames, Object> criterias, U updatedDto, Class<U> updateDtoClass, Class<E> entityClass, DbCollectionNames dbCollectionName) {
+        Query searchQuery = buildQuery(criterias);
+        E existingEntity = findOneBy(criterias, entityClass, dbCollectionName);
+        E entityWithNewValues = mapperUtilityFromUpdateDtoToEntity.map(updatedDto, updateDtoClass, entityClass);
+        Map<FieldNames, Object> changes = differenceUtility.getChanges(existingEntity, entityWithNewValues, entityClass);
+        Update update = new Update();
+        changes.forEach((key, value) -> update.addToSet(key.getField()));
+        return mongoTemplate.findAndModify(
+                searchQuery,
+                update,
+                entityClass,
+                dbCollectionName.getCollection());
     }
 
     public boolean isDbEntityListParameterContainsValue(ObjectId entityId, FieldNames entityFieldListName, Object searchedValue, Class<E> targetClass, DbCollectionNames dbCollectionName) {
@@ -122,13 +134,13 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity> implements DbEntit
     }
 
     public boolean isEntityExistsBy(Map<FieldNames, Object> criterias, Class<E> targetClass, DbCollectionNames dbCollectionName) {
-        return mongoTemplate.exists(buildQuery(criterias), targetClass, dbCollectionName.getName());
+        return mongoTemplate.exists(buildQuery(criterias), targetClass, dbCollectionName.getCollection());
     }
 
     @Override
     public void deleteEntityBy(Map<FieldNames, Object> criterias, Class<E> targetClass, DbCollectionNames dbCollectionName) {
         findOneBy(criterias, targetClass, dbCollectionName);
-        mongoTemplate.remove(buildQuery(criterias), targetClass, dbCollectionName.getName());
+        mongoTemplate.remove(buildQuery(criterias), targetClass, dbCollectionName.getCollection());
     }
 
     private List<E> searchEntitiesByCriteria(FieldNames fieldName, String criteriaValue, Class<E> targetClass, List<E> allInCollection) {
@@ -202,7 +214,7 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity> implements DbEntit
         query.addCriteria(Criteria.where(fiendName.getField()).is("/" + value + "$"));
     }
 
-    private Map<String, Object> convertCriterias(Map<FieldNames, Object> criterias) {
+    private Map<String, Object> parseCriterias(Map<FieldNames, Object> criterias) {
         return criterias.entrySet().stream()
                 .collect(Collectors.toMap(c -> c.getKey().getField(), Map.Entry::getValue));
     }

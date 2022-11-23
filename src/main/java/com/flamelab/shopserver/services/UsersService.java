@@ -20,7 +20,7 @@ public interface UsersService {
 
     List<TransferUserDto> getAllUsers();
 
-    TransferUserDto updateUserData(ObjectId userId, UpdateUserDto updateUserDto);
+    TransferUserDto updateUserById(ObjectId userId, UpdateUserDto updateUserDto);
 
     TransferUserDto addWalletToUser(ObjectId userId, ObjectId walletId);
 

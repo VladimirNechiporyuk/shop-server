@@ -67,14 +67,15 @@ public class WalletsServiceImpl implements WalletsService {
 
     @Override
     public TransferWalletDto updateWalletAmount(ObjectId walletId, AmountActionType amountActionType, double amount) {
-        Wallet wallet = fetchWalletBy(Map.of(ID__FIELD_APPELLATION, walletId));
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, walletId);
+        Wallet wallet = fetchWalletBy(searchCriterias);
         double resultAmount = increaseOrDecreaseWalletAmount(wallet.getAmount(), amountActionType, amount);
         if (resultAmount < 0.0) {
             throw new WalletHasNotEnoughMoneyException(String.format("The wallet with id '%s' has not enough money for making the payment", walletId));
         }
-        Map<FieldNames, Object> changes = Map.of(AMOUNT__FIELD_APPELLATION, resultAmount);
+
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(wallet, Wallet.class, changes, WALLETS__DB_COLLECTION),
+                dbEntityUtility.updateEntity(searchCriterias, Wallet.class, changes, WALLETS__DB_COLLECTION),
                 Wallet.class,
                 TransferWalletDto.class
         );

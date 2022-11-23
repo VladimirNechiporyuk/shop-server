@@ -79,11 +79,12 @@ public class ShopsServiceImpl implements ShopsService {
 
     @Override
     public TransferShopDto updateShopData(ObjectId shopId, UpdateShopDto updateShopDto) {
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, shopId);
         Shop existingShop = fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
         Shop shopWithNewData = mapperFromUpdateDtoToEntity.map(updateShopDto, UpdateShopDto.class, Shop.class);
         Map<FieldNames, Object> changes = differenceUtility.getChanges(existingShop, shopWithNewData, Shop.class);
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(existingShop, Shop.class, changes, SHOPS__DB_COLLECTION),
+                dbEntityUtility.updateEntity(searchCriterias, Shop.class, changes, SHOPS__DB_COLLECTION),
                 Shop.class,
                 TransferShopDto.class
         );
@@ -91,10 +92,11 @@ public class ShopsServiceImpl implements ShopsService {
 
     @Override
     public TransferShopDto addWalletToShop(ObjectId shopId, ObjectId walletId) {
-        Shop shop = fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, shopId);
+        fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
         Map<FieldNames, Object> changes = Map.of(WALLET_ID__FIELD_APPELLATION, walletId);
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(shop, Shop.class, changes, SHOPS__DB_COLLECTION),
+                dbEntityUtility.updateEntity(searchCriterias, Shop.class, changes, SHOPS__DB_COLLECTION),
                 Shop.class,
                 TransferShopDto.class
         );

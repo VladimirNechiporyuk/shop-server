@@ -61,7 +61,7 @@ public class UsersManagerImpl implements UsersManager {
 
     @Override
     public TransferUserDto updateUserData(ObjectId userId, UpdateUserDto updateUserDto) {
-        return usersService.updateUserData(userId, updateUserDto);
+        return usersService.updateUserById(userId, updateUserDto);
     }
 
     @Override

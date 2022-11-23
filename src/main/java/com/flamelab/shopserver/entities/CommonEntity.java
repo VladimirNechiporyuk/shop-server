@@ -2,7 +2,9 @@ package com.flamelab.shopserver.entities;
 
 import com.flamelab.shopserver.utiles.data.ObjectWithData;
 import lombok.*;
+import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
