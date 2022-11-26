@@ -21,7 +21,11 @@ public interface CommonService<C extends CommonCreateDto, T extends CommonTransf
 
     boolean isEntityExistsByCriterias(Map<FieldNames, Object> criterias);
 
+    T updateEntityById(ObjectId entityId, U dtoWithNewData);
+
     T updateEntityBy(Map<FieldNames, Object> criterias, U dtoWithNewData);
+
+    void deleteEntityById(ObjectId entityId);
 
     void deleteEntityByCriterias(Map<FieldNames, Object> criterias);
 

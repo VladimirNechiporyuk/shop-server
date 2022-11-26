@@ -18,7 +18,8 @@ public class ExceptionHandlerAdvice {
         e.printStackTrace();
         return ResponseEntity
                 .status(e.getHttpStatus())
-                .header("Exception", e.getMessage())
+                .header("Exception class", e.getClass().toString())
+                .header("Exception message", e.getMessage())
                 .body(e.getMessage());
     }
 

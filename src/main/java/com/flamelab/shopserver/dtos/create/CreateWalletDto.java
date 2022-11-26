@@ -9,6 +9,7 @@ import org.bson.types.ObjectId;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@AllArgsConstructor
 public class CreateWalletDto extends CommonCreateDto {
 
     private ObjectId ownerId;

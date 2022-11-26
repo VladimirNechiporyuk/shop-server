@@ -26,8 +26,9 @@ import static com.flamelab.shopserver.utiles.naming.FieldNames.WALLET_ID__FIELD_
 @Service
 @RequiredArgsConstructor
 public class UsersServiceImpl implements UsersService {
-    private final MapperUtility<User, TransferUserDto> mapperFromEntityToTransferDto;
 
+    private final MapperUtility<User, TransferUserDto> mapperFromEntityToTransferDto;
+    private final MapperUtility<User, UpdateUserDto> mapperFromEntityToUpdateDto;
     private final DbEntityUtility<User, CreateUserDto, UpdateUserDto> dbEntityUtility;
 
     @Override
@@ -72,6 +73,15 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
+    public TransferUserDto updateEntityById(ObjectId entityId, UpdateUserDto dtoWithNewData) {
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(Map.of(ID__FIELD_APPELLATION, entityId), dtoWithNewData, UpdateUserDto.class, User.class, USERS__DB_COLLECTION),
+                User.class,
+                TransferUserDto.class
+        );
+    }
+
+    @Override
     public TransferUserDto updateEntityBy(Map<FieldNames, Object> criterias, UpdateUserDto dtoWithNewData) {
         return mapperFromEntityToTransferDto.map(
                 dbEntityUtility.updateEntity(criterias, dtoWithNewData, UpdateUserDto.class, User.class, USERS__DB_COLLECTION),
@@ -81,40 +91,47 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
+    public void deleteEntityById(ObjectId entityId) {
+        dbEntityUtility.deleteEntityBy(Map.of(ID__FIELD_APPELLATION, entityId), User.class, USERS__DB_COLLECTION);
+    }
+
+    @Override
     public TransferUserDto addWalletToUser(ObjectId userId, ObjectId walletId) {
-        return null;
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, userId);
+        User user = fetchUserById(userId);
+        user.setWalletId(walletId);
+        UpdateUserDto updateUserDto = mapperFromEntityToUpdateDto.map(user, User.class, UpdateUserDto.class);
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(searchCriterias, updateUserDto, UpdateUserDto.class, User.class, USERS__DB_COLLECTION),
+                User.class,
+                TransferUserDto.class
+        );
     }
 
     @Override
     public TransferUserDto addProductsToTheBucket(ObjectId userId, ProductName productName, double price, int amount) {
         Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, userId);
         User user = fetchUserById(userId);
-        List<Product> basket = user.getBasket();
-        addProductToTheBucket(basket, productName, price, amount);
-//        return mapperFromEntityToTransferDto.map(
-//                dbEntityUtility.updateEntity(searchCriterias,  User.class, USERS__DB_COLLECTION),
-//                User.class,
-//                TransferUserDto.class
-//        );
-        return null;
+        addProductToTheBucket(user, productName, price, amount);
+        UpdateUserDto updateUserDto = mapperFromEntityToUpdateDto.map(user, User.class, UpdateUserDto.class);
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(searchCriterias, updateUserDto, UpdateUserDto.class, User.class, USERS__DB_COLLECTION),
+                User.class,
+                TransferUserDto.class
+        );
     }
 
     @Override
     public void deleteEntityByCriterias(Map<FieldNames, Object> criterias) {
-
-    }
-
-    private Product addProduct(List<Product> basket, ProductName productName, int amount) {
-        // TODO: add product amount to existing products in basket
-        //      or create new product in basket
-        return null;
+        dbEntityUtility.deleteEntityBy(criterias, User.class, USERS__DB_COLLECTION);
     }
 
     private User fetchUserById(ObjectId userId) {
         return dbEntityUtility.findOneBy(Map.of(ID__FIELD_APPELLATION, userId), User.class, USERS__DB_COLLECTION);
     }
 
-    private void addProductToTheBucket(List<Product> basket, ProductName productName, double price, int amount) {
+    private void addProductToTheBucket(User user, ProductName productName, double price, int amount) {
+        List<Product> basket = user.getBasket();
         if (isBasketContainsProduct(basket, productName)) {
             for (Product product : basket) {
                 if (product.getName().equals(productName)) {

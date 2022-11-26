@@ -1,6 +1,7 @@
 package com.flamelab.shopserver.managers.impl;
 
 import com.flamelab.shopserver.dtos.create.CreateShopDto;
+import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
@@ -29,21 +30,22 @@ public class ShopsManagerImpl implements ShopsManager {
 
     @Override
     public TransferShopDto createShop(CreateShopDto createShopDto) {
+        int START_WALLET_AMOUNT = 1000;
         int shopCapitalOnOpening = 10000;
-        TransferShopDto shop = shopsService.createShop(createShopDto);
-        TransferWalletDto wallet = walletsService.createWallet(shop.getId(), SHOP);
+        TransferShopDto shop = shopsService.createEntity(createShopDto);
+        TransferWalletDto wallet = walletsService.createEntity(new CreateWalletDto(shop.getId(), SHOP, START_WALLET_AMOUNT));
         walletsService.updateWalletAmount(wallet.getId(), INCREASE, shopCapitalOnOpening);
         return shopsService.addWalletToShop(shop.getId(), wallet.getId());
     }
 
     @Override
     public TransferShopDto getShopById(ObjectId id) {
-        return shopsService.getShopById(id);
+        return shopsService.getEntityById(id);
     }
 
     @Override
     public List<TransferShopDto> getAllShops() {
-        return shopsService.getAllShops();
+        return shopsService.getAllEntities();
     }
 
     @Override
@@ -58,12 +60,12 @@ public class ShopsManagerImpl implements ShopsManager {
 
     @Override
     public TransferShopDto updateShopData(ObjectId id, UpdateShopDto updateShopDto) {
-        return shopsService.updateShopData(id, updateShopDto);
+        return shopsService.updateEntityById(id, updateShopDto);
     }
 
     @Override
     public TransferShopDto buyProductsFromTheStock(ObjectId shopId, ProductName productName, double price, int amount) {
-        TransferShopDto shop = shopsService.getShopById(shopId);
+        TransferShopDto shop = shopsService.getEntityById(shopId);
         Product product = shopsService.getProductData(shopId, productName);
         boolean isWalletAmountEnough = walletsService.isWalletHasEnoughAmountByOwnerId(shopId, amount);
         if (!isWalletAmountEnough) {
@@ -80,6 +82,6 @@ public class ShopsManagerImpl implements ShopsManager {
 
     @Override
     public void deleteShop(ObjectId id) {
-        shopsService.deleteShop(id);
+        shopsService.deleteEntityById(id);
     }
 }

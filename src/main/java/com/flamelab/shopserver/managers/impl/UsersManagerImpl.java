@@ -1,6 +1,7 @@
 package com.flamelab.shopserver.managers.impl;
 
 import com.flamelab.shopserver.dtos.create.CreateUserDto;
+import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
@@ -34,24 +35,25 @@ public class UsersManagerImpl implements UsersManager {
 
     @Override
     public TransferUserDto createUser(CreateUserDto createUserDto) {
-        TransferUserDto user = usersService.createUser(createUserDto);
-        TransferWalletDto walletDto = walletsService.createWallet(user.getId(), USER);
+        TransferUserDto user = usersService.createEntity(createUserDto);
+        int START_WALLET_AMOUNT = 0;
+        TransferWalletDto walletDto = walletsService.createEntity(new CreateWalletDto(user.getId(), USER, START_WALLET_AMOUNT));
         return usersService.addWalletToUser(user.getId(), walletDto.getId());
     }
 
     @Override
     public TransferUserDto getUserById(ObjectId userId) {
-        return usersService.getUserById(userId);
+        return usersService.getEntityById(userId);
     }
 
     @Override
     public Object getUserBy(Map<FieldNames, Object> criterias) {
-        return usersService.getUserBy(criterias);
+        return usersService.getEntityByCriterias(criterias);
     }
 
     @Override
     public List<TransferUserDto> getAllUsers() {
-        return usersService.getAllUsers();
+        return usersService.getAllEntities();
     }
 
     @Override
@@ -61,12 +63,12 @@ public class UsersManagerImpl implements UsersManager {
 
     @Override
     public TransferUserDto updateUserData(ObjectId userId, UpdateUserDto updateUserDto) {
-        return usersService.updateUserById(userId, updateUserDto);
+        return usersService.updateEntityById(userId, updateUserDto);
     }
 
     @Override
     public TransferWalletDto deposit(ObjectId userId, int amount) {
-        TransferUserDto user = usersService.getUserById(userId);
+        TransferUserDto user = usersService.getEntityById(userId);
         return walletsService.updateWalletAmount(user.getId(), INCREASE, amount);
     }
 
@@ -91,7 +93,7 @@ public class UsersManagerImpl implements UsersManager {
     @Override
     public void deleteUser(ObjectId userId) {
         TransferUserDto user = getUserById(userId);
-        walletsService.deleteWalletById(user.getWalletId());
-        usersService.deleteUser(userId);
+        walletsService.deleteEntityById(user.getWalletId());
+        usersService.deleteEntityById(userId);
     }
 }

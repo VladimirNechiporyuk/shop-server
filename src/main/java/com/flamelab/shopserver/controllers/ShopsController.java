@@ -7,14 +7,12 @@ import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.managers.ShopsManager;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.*;
-import static org.springframework.web.bind.annotation.RequestMethod.OPTIONS;
 
 @RestController
 @RequestMapping("/shops")
