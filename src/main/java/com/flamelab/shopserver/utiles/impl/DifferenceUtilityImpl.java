@@ -30,16 +30,16 @@ public class DifferenceUtilityImpl<T extends ObjectWithData> implements Differen
 
     private Map<FieldNames, Object> getChangedData(T objectBeforeChanges, T updatedObject, Class<T> targetClass) {
         List<String> fieldsNames = classUtility.getAllClassFields(targetClass).stream().map(Field::getName).toList();
-        Map<String, Object> objectBeforeChangesFieldsWithValues = classUtility.getFieldsWithValues(objectBeforeChanges, targetClass);
-        Map<String, Object> updatedObjectFieldsWithValues = classUtility.getFieldsWithValues(updatedObject, targetClass);
+        Map<String, Object> objectBeforeChangesMap = classUtility.getFieldsWithValues(objectBeforeChanges, targetClass);
+        Map<String, Object> objectWithNewValuesMap = classUtility.getFieldsWithValues(updatedObject, targetClass);
         Map<FieldNames, Object> changes = new HashMap<>();
         for (String fieldName : fieldsNames) {
-            if (objectBeforeChangesFieldsWithValues.containsKey(fieldName)
-                    && updatedObjectFieldsWithValues.containsKey(fieldName)
-                    && updatedObjectFieldsWithValues.get(fieldName) != null
-                    && !objectBeforeChangesFieldsWithValues.get(fieldName).equals(updatedObjectFieldsWithValues.get(fieldName))) {
+            if (objectBeforeChangesMap.containsKey(fieldName)
+                    && objectWithNewValuesMap.containsKey(fieldName)
+                    && objectWithNewValuesMap.get(fieldName) != null
+                    && !objectWithNewValuesMap.get(fieldName).equals(objectBeforeChangesMap.get(fieldName))) {
                 FieldNames fieldNameAppellation = FieldNames.getFieldAppellationByName(fieldName);
-                changes.put(fieldNameAppellation, updatedObjectFieldsWithValues.get(fieldName));
+                changes.put(fieldNameAppellation, objectWithNewValuesMap.get(fieldName));
             }
         }
         validateIsObjectsHasChanges(changes, targetClass, updatedObject);

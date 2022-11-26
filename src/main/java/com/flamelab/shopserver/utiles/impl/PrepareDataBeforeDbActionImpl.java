@@ -32,4 +32,5 @@ public class PrepareDataBeforeDbActionImpl<E extends CommonEntity, C extends Com
         E entityWithNewValues = mapperUtilityFromUpdateDtoToEntity.map(updatedDto, updateDtoClass, entityClass);
         return differenceUtility.getChanges(entity, entityWithNewValues, entityClass);
     }
+
 }

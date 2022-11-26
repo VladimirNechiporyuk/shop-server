@@ -5,8 +5,9 @@ import com.flamelab.shopserver.dtos.update.CommonUpdateDto;
 import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.exceptions.MoreThanOneEntityExistsByQueryException;
 import com.flamelab.shopserver.exceptions.NoExistentEntityException;
-import com.flamelab.shopserver.exceptions.ResourceException;
-import com.flamelab.shopserver.utiles.*;
+import com.flamelab.shopserver.utiles.ClassUtility;
+import com.flamelab.shopserver.utiles.DbEntityUtility;
+import com.flamelab.shopserver.utiles.PrepareDataBeforeDbAction;
 import com.flamelab.shopserver.utiles.data.SideOfValue;
 import com.flamelab.shopserver.utiles.naming.DbCollectionNames;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.flamelab.shopserver.utiles.naming.FieldNames.EMAIL__FIELD_APPELLATION;
 import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLATION;
 
 @Component
@@ -36,8 +38,6 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, C extends CommonCr
     private final MongoTemplate mongoTemplate;
     private final ClassUtility<E> classUtility;
     private final PrepareDataBeforeDbAction<E, C, U> prepareDataBeforeDbAction;
-    private final MapperUtility<U, E> mapperUtilityFromUpdateDtoToEntity;
-    private final DifferenceUtility<E> differenceUtility;
     private final String separateSymbol = ",";
 
     public E saveEntity(C createDto, Class<C> createDtoClass, Class<E> targetClass, DbCollectionNames dbCollectionName) {
@@ -124,12 +124,16 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, C extends CommonCr
                         updateDtoClass,
                         entityClass);
         Update update = new Update();
-        changes.forEach((key, value) -> update.addToSet(key.getField()));
-        return mongoTemplate.findAndModify(
+        changes.put(EMAIL__FIELD_APPELLATION, "changed");
+        for (Map.Entry<FieldNames, Object> entry : changes.entrySet()) {
+            update.set(entry.getKey().getField(), entry.getValue());
+        }
+        mongoTemplate.findAndModify(
                 searchQuery,
                 update,
                 entityClass,
                 dbCollectionName.getCollection());
+        return findOneBy(criterias, entityClass, dbCollectionName);
     }
 
     public boolean isDbEntityListParameterContainsValue(ObjectId entityId, FieldNames entityFieldListName, Object searchedValue, Class<E> targetClass, DbCollectionNames dbCollectionName) {

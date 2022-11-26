@@ -17,10 +17,4 @@ public class Wallet extends CommonEntity {
     private OwnerType ownerType;
     private double amount;
 
-    public Wallet(ObjectId ownerId, OwnerType ownerType, double amount) {
-        super(ObjectId.get(), LocalDateTime.now(), LocalDateTime.now());
-        this.ownerId = ownerId;
-        this.ownerType = ownerType;
-        this.amount = amount;
-    }
 }
