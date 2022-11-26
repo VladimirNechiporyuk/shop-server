@@ -4,7 +4,6 @@ import com.flamelab.shopserver.dtos.create.CreateShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
-import com.flamelab.shopserver.enums.AmountActionType;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.exceptions.ShopHasNotEnoughMoneyException;
 import com.flamelab.shopserver.internal_data.Product;
@@ -71,7 +70,7 @@ public class ShopsManagerImpl implements ShopsManager {
             throw new ShopHasNotEnoughMoneyException(String.format("The shop with id '%s' has money less then '%s' and can't do the payment", shopId, amount));
         }
         walletsService.updateWalletAmount(shop.getWalletId(), DECREASE, product.getAmount() * amount);
-        return shopsService.buyProductsFromTheStock(shopId, productName, price, amount);
+        return shopsService.getProductsFromTheStock(shopId, productName, price, amount);
     }
 
     @Override

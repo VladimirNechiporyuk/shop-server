@@ -1,14 +1,12 @@
 package com.flamelab.shopserver.utiles.impl;
 
+import com.flamelab.shopserver.dtos.create.CommonCreateDto;
 import com.flamelab.shopserver.dtos.update.CommonUpdateDto;
 import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.exceptions.MoreThanOneEntityExistsByQueryException;
 import com.flamelab.shopserver.exceptions.NoExistentEntityException;
 import com.flamelab.shopserver.exceptions.ResourceException;
-import com.flamelab.shopserver.utiles.ClassUtility;
-import com.flamelab.shopserver.utiles.DbEntityUtility;
-import com.flamelab.shopserver.utiles.DifferenceUtility;
-import com.flamelab.shopserver.utiles.MapperUtility;
+import com.flamelab.shopserver.utiles.*;
 import com.flamelab.shopserver.utiles.data.SideOfValue;
 import com.flamelab.shopserver.utiles.naming.DbCollectionNames;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
@@ -33,16 +31,19 @@ import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLA
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class MongoDbEntityUtilityImpl<E extends CommonEntity, U extends CommonUpdateDto> implements DbEntityUtility<E, U> {
+public class MongoDbEntityUtilityImpl<E extends CommonEntity, C extends CommonCreateDto, U extends CommonUpdateDto> implements DbEntityUtility<E, C, U> {
 
     private final MongoTemplate mongoTemplate;
     private final ClassUtility<E> classUtility;
+    private final PrepareDataBeforeDbAction<E, C, U> prepareDataBeforeDbAction;
     private final MapperUtility<U, E> mapperUtilityFromUpdateDtoToEntity;
     private final DifferenceUtility<E> differenceUtility;
     private final String separateSymbol = ",";
 
-    public E saveEntity(E entityForSaving, Class<E> targetClass, DbCollectionNames dbCollectionName) {
-        return mongoTemplate.save(entityForSaving, dbCollectionName.getCollection());
+    public E saveEntity(C createDto, Class<C> createDtoClass, Class<E> targetClass, DbCollectionNames dbCollectionName) {
+        return mongoTemplate.save(
+                prepareDataBeforeDbAction.prepareNewEntity(createDto, createDtoClass, targetClass),
+                dbCollectionName.getCollection());
     }
 
     public E findOneByOrThrow(Map<FieldNames, Object> criterias, Class<E> searchedClass, DbCollectionNames dbCollectionName) {
@@ -66,7 +67,7 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, U extends CommonUp
         List<E> entitiesFoundFromDb = mongoTemplate.find(query, searchedClass, dbCollectionName.getCollection());
         if (entitiesFoundFromDb.size() == 1) {
             return entitiesFoundFromDb.stream().findFirst().get();
-        } else if (entitiesFoundFromDb.size() > 1){
+        } else if (entitiesFoundFromDb.size() > 1) {
             throw new MoreThanOneEntityExistsByQueryException("More then one entity found");
         } else {
             throw new NoExistentEntityException("No existing entities found");
@@ -116,9 +117,12 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, U extends CommonUp
 
     public E updateEntity(Map<FieldNames, Object> criterias, U updatedDto, Class<U> updateDtoClass, Class<E> entityClass, DbCollectionNames dbCollectionName) {
         Query searchQuery = buildQuery(criterias);
-        E existingEntity = findOneBy(criterias, entityClass, dbCollectionName);
-        E entityWithNewValues = mapperUtilityFromUpdateDtoToEntity.map(updatedDto, updateDtoClass, entityClass);
-        Map<FieldNames, Object> changes = differenceUtility.getChanges(existingEntity, entityWithNewValues, entityClass);
+        Map<FieldNames, Object> changes =
+                prepareDataBeforeDbAction.prepareChanges(
+                        findOneBy(criterias, entityClass, dbCollectionName),
+                        updatedDto,
+                        updateDtoClass,
+                        entityClass);
         Update update = new Update();
         changes.forEach((key, value) -> update.addToSet(key.getField()));
         return mongoTemplate.findAndModify(

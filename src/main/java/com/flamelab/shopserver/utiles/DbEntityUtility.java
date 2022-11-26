@@ -1,5 +1,6 @@
 package com.flamelab.shopserver.utiles;
 
+import com.flamelab.shopserver.dtos.create.CommonCreateDto;
 import com.flamelab.shopserver.dtos.update.CommonUpdateDto;
 import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.utiles.data.SideOfValue;
@@ -12,9 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public interface DbEntityUtility <E extends CommonEntity, U extends CommonUpdateDto> {
+public interface DbEntityUtility<E extends CommonEntity, C extends CommonCreateDto, U extends CommonUpdateDto> {
 
-    E saveEntity(E entityForSaving, Class<E> targetClass, DbCollectionNames dbCollectionName);
+    E saveEntity(C createDto, Class<C> createDtoClass, Class<E> targetClass, DbCollectionNames dbCollectionName);
 
     E findOneByOrThrow(Map<FieldNames, Object> criterias, Class<E> searchedClass, DbCollectionNames dbCollectionName);
 
