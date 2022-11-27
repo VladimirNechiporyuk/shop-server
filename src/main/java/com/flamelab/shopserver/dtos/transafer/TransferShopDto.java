@@ -6,6 +6,7 @@ import com.flamelab.shopserver.utiles.serializers.StringJsonSerializer;
 import lombok.*;
 import org.bson.types.ObjectId;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -19,6 +20,6 @@ public class TransferShopDto extends CommonTransferDto {
     private String name;
     @JsonSerialize(using = StringJsonSerializer.class)
     private ObjectId walletId;
-    private List<Product> products;
+    private List<Product> products = new ArrayList<>();
 
 }

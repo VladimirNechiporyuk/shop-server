@@ -25,7 +25,6 @@ public enum FieldNames {
     OWNER_TYPE__FIELD_APPELLATION("ownerType"),
     AMOUNT__FIELD_APPELLATION("amount"),
     PRODUCTS__FIELD_APPELLATION("products"),
-
     ;
 
     private final String field;

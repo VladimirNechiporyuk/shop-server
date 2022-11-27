@@ -48,9 +48,7 @@ public class ClassUtilityImpl<T extends ObjectWithData> implements ClassUtility<
         Map<String, Object> fieldsWithValues = new HashMap<>();
         for (Field field : fields) {
             try {
-                if (field.get(instance) != null) {
-                    fieldsWithValues.put(field.getName(), field.get(instance));
-                }
+                fieldsWithValues.put(field.getName(), field.get(instance));
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }

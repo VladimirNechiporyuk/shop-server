@@ -9,60 +9,94 @@ import com.flamelab.shopserver.exceptions.NoProductException;
 import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.services.ShopsService;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
-import com.flamelab.shopserver.utiles.DifferenceUtility;
-import com.flamelab.shopserver.utiles.EntityBuilder;
 import com.flamelab.shopserver.utiles.MapperUtility;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static com.flamelab.shopserver.utiles.naming.DbCollectionNames.SHOPS__DB_COLLECTION;
 import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLATION;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.WALLET_ID__FIELD_APPELLATION;
 
 @Service
 @RequiredArgsConstructor
 public class ShopsServiceImpl implements ShopsService {
 
     private final MapperUtility<Shop, TransferShopDto> mapperFromEntityToTransferDto;
-    private final MapperUtility<UpdateShopDto, Shop> mapperFromUpdateDtoToEntity;
-    private final DbEntityUtility<Shop> dbEntityUtility;
-    private final EntityBuilder<Shop, CreateShopDto> entityBuilder;
-    private final DifferenceUtility<Shop> differenceUtility;
+    private final MapperUtility<Shop, UpdateShopDto> mapperFromEntityToUpdateDto;
+    private final DbEntityUtility<Shop, CreateShopDto, UpdateShopDto> dbEntityUtility;
 
     @Override
-    public TransferShopDto createShop(CreateShopDto createShopDto) {
-        Shop shop = entityBuilder.buildEntityFromDto(createShopDto, CreateShopDto.class, Shop.class);
-        shop.setProducts(new ArrayList<>());
+    public TransferShopDto createEntity(CreateShopDto createEntity) {
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.saveEntity(shop, Shop.class, SHOPS__DB_COLLECTION),
+                dbEntityUtility.saveEntity(createEntity, CreateShopDto.class, Shop.class, SHOPS__DB_COLLECTION),
                 Shop.class,
                 TransferShopDto.class
         );
     }
 
     @Override
-    public TransferShopDto getShopById(ObjectId shopId) {
+    public TransferShopDto getEntityById(ObjectId entityId) {
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.findOneBy(Map.of(ID__FIELD_APPELLATION, shopId), Shop.class, SHOPS__DB_COLLECTION),
+                fetchShopById(entityId),
                 Shop.class,
                 TransferShopDto.class
         );
     }
 
     @Override
-    public List<TransferShopDto> getAllShops() {
+    public TransferShopDto getEntityByCriterias(Map<FieldNames, Object> criterias) {
+        return mapperFromEntityToTransferDto.map(
+                fetchShopBy(criterias),
+                Shop.class,
+                TransferShopDto.class
+        );
+    }
+
+    @Override
+    public List<TransferShopDto> getAllEntities() {
         return mapperFromEntityToTransferDto.mapToList(
                 dbEntityUtility.findAllByClass(Shop.class, SHOPS__DB_COLLECTION),
                 Shop.class,
                 TransferShopDto.class
         );
+    }
+
+    @Override
+    public boolean isEntityExistsByCriterias(Map<FieldNames, Object> criterias) {
+        return dbEntityUtility.isEntityExistsBy(criterias, Shop.class, SHOPS__DB_COLLECTION);
+    }
+
+    @Override
+    public TransferShopDto updateEntityById(ObjectId entityId, UpdateShopDto dtoWithNewData) {
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(Map.of(ID__FIELD_APPELLATION, entityId), dtoWithNewData, UpdateShopDto.class, Shop.class, SHOPS__DB_COLLECTION),
+                Shop.class,
+                TransferShopDto.class
+        );
+    }
+
+    @Override
+    public TransferShopDto updateEntityBy(Map<FieldNames, Object> criterias, UpdateShopDto dtoWithNewData) {
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(criterias, dtoWithNewData, UpdateShopDto.class, Shop.class, SHOPS__DB_COLLECTION),
+                Shop.class,
+                TransferShopDto.class
+        );
+    }
+
+    @Override
+    public void deleteEntityById(ObjectId entityId) {
+        dbEntityUtility.deleteEntityBy(Map.of(ID__FIELD_APPELLATION, entityId), Shop.class, SHOPS__DB_COLLECTION);
+    }
+
+    @Override
+    public void deleteEntityByCriterias(Map<FieldNames, Object> criterias) {
+        dbEntityUtility.deleteEntityBy(criterias, Shop.class, SHOPS__DB_COLLECTION);
     }
 
     @Override
@@ -78,64 +112,68 @@ public class ShopsServiceImpl implements ShopsService {
     }
 
     @Override
-    public TransferShopDto updateShopData(ObjectId shopId, UpdateShopDto updateShopDto) {
-        Shop existingShop = fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
-        Shop shopWithNewData = mapperFromUpdateDtoToEntity.map(updateShopDto, UpdateShopDto.class, Shop.class);
-        Map<FieldNames, Object> changes = differenceUtility.getChanges(existingShop, shopWithNewData, Shop.class);
-        return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(existingShop, Shop.class, changes, SHOPS__DB_COLLECTION),
-                Shop.class,
-                TransferShopDto.class
-        );
-    }
-
-    @Override
     public TransferShopDto addWalletToShop(ObjectId shopId, ObjectId walletId) {
-        Shop shop = fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
-        Map<FieldNames, Object> changes = Map.of(WALLET_ID__FIELD_APPELLATION, walletId);
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, shopId);
+        Shop shop = fetchShopById(shopId);
+        shop.setWalletId(walletId);
+        UpdateShopDto dtoWithNewData = mapperFromEntityToUpdateDto.map(shop, Shop.class, UpdateShopDto.class);
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(shop, Shop.class, changes, SHOPS__DB_COLLECTION),
+                dbEntityUtility.updateEntity(searchCriterias, dtoWithNewData, UpdateShopDto.class, Shop.class, SHOPS__DB_COLLECTION),
                 Shop.class,
                 TransferShopDto.class
         );
     }
 
     @Override
-    public TransferShopDto buyProductsFromTheStock(ObjectId shopId, ProductName productName, double price, int amount) {
-        Shop shop = fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
+    public TransferShopDto getProductsFromTheStock(ObjectId shopId, ProductName productName, double price, int amount) {
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, shopId);
+        Shop shop = fetchShopBy(searchCriterias);
         Product product = fetchProductInShop(shop, productName);
-        shop.getProducts().remove(product);
+//        shop.getProducts().remove(product);
         int productResultAmount = product.getAmount() + amount;
         product.setAmount(productResultAmount);
         product.setPrice(price);
-        shop.getProducts().add(product);
-        return mapperFromEntityToTransferDto.map(shop, Shop.class, TransferShopDto.class);
+//        shop.getProducts().add(product);
+        UpdateShopDto dtoWithNewData = mapperFromEntityToUpdateDto.map(shop, Shop.class, UpdateShopDto.class);
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(searchCriterias, dtoWithNewData, UpdateShopDto.class, Shop.class, SHOPS__DB_COLLECTION),
+                Shop.class,
+                TransferShopDto.class);
     }
 
     @Override
     public TransferShopDto decreaseProductsAmount(ObjectId shopId, ProductName productName, int amount) {
-        Shop shop = fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, shopId);
+        Shop shop = fetchShopBy(searchCriterias);
         Product product = fetchProductInShop(shop, productName);
-        shop.getProducts().remove(product);
+//        shop.getProducts().remove(product);
         int productResultAmount = product.getAmount() - amount;
         product.setAmount(productResultAmount);
-        shop.getProducts().add(product);
-        return mapperFromEntityToTransferDto.map(shop, Shop.class, TransferShopDto.class);
+//        shop.getProducts().add(product);
+        UpdateShopDto dtoWithNewData = mapperFromEntityToUpdateDto.map(shop, Shop.class, UpdateShopDto.class);
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(searchCriterias, dtoWithNewData, UpdateShopDto.class, Shop.class, SHOPS__DB_COLLECTION),
+                Shop.class,
+                TransferShopDto.class);
     }
 
     @Override
     public TransferShopDto setProductPrice(ObjectId shopId, ProductName productName, double price) {
-        Shop shop = fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, shopId);
+        Shop shop = fetchShopBy(searchCriterias);
         Product product = fetchProductInShop(shop, productName);
-        shop.getProducts().remove(product);
+//        shop.getProducts().remove(product);
         product.setPrice(price);
-        shop.getProducts().add(product);
-        return mapperFromEntityToTransferDto.map(shop, Shop.class, TransferShopDto.class);
+//        shop.getProducts().add(product);
+        UpdateShopDto dtoWithNewData = mapperFromEntityToUpdateDto.map(shop, Shop.class, UpdateShopDto.class);
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(searchCriterias, dtoWithNewData, UpdateShopDto.class, Shop.class, SHOPS__DB_COLLECTION),
+                Shop.class,
+                TransferShopDto.class);
     }
 
-    @Override
-    public void deleteShop(ObjectId shopId) {
-        dbEntityUtility.deleteEntityBy(Map.of(ID__FIELD_APPELLATION, shopId), Shop.class, SHOPS__DB_COLLECTION);
+    private Shop fetchShopById(ObjectId shopId) {
+        return dbEntityUtility.findOneBy(Map.of(ID__FIELD_APPELLATION, shopId), Shop.class, SHOPS__DB_COLLECTION);
     }
 
     private Shop fetchShopBy(Map<FieldNames, Object> criterias) {
@@ -153,5 +191,4 @@ public class ShopsServiceImpl implements ShopsService {
             throw new NoProductException(String.format("The shop with id '%s' has no products with name '%s'", shop.getId(), productName));
         }
     }
-
 }

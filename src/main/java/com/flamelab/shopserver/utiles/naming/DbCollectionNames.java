@@ -6,13 +6,13 @@ public enum DbCollectionNames {
     USERS__DB_COLLECTION("users"),
     WALLETS__DB_COLLECTION("wallets");
 
-    private final String name;
+    private final String collection;
 
-    DbCollectionNames(String name) {
-        this.name = name;
+    DbCollectionNames(String collection) {
+        this.collection = collection;
     }
 
-    public String getName() {
-        return this.name;
+    public String getCollection() {
+        return this.collection;
     }
 }

@@ -8,7 +8,6 @@ import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.services.UsersService;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
-import com.flamelab.shopserver.utiles.DifferenceUtility;
 import com.flamelab.shopserver.utiles.EntityBuilder;
 import com.flamelab.shopserver.utiles.MapperUtility;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
@@ -21,49 +20,46 @@ import java.util.List;
 import java.util.Map;
 
 import static com.flamelab.shopserver.utiles.naming.DbCollectionNames.USERS__DB_COLLECTION;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.*;
+import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLATION;
+import static com.flamelab.shopserver.utiles.naming.FieldNames.WALLET_ID__FIELD_APPELLATION;
 
 @Service
 @RequiredArgsConstructor
 public class UsersServiceImpl implements UsersService {
 
     private final MapperUtility<User, TransferUserDto> mapperFromEntityToTransferDto;
-    private final MapperUtility<UpdateUserDto, User> mapperFromUpdateDtoToEntity;
-    private final DbEntityUtility<User> dbEntityUtility;
-    private final EntityBuilder<User, CreateUserDto> entityBuilder;
-    private final DifferenceUtility<User> differenceUtility;
+    private final MapperUtility<User, UpdateUserDto> mapperFromEntityToUpdateDto;
+    private final DbEntityUtility<User, CreateUserDto, UpdateUserDto> dbEntityUtility;
 
     @Override
-    public TransferUserDto createUser(CreateUserDto createUserDto) {
-        User user = entityBuilder.buildEntityFromDto(createUserDto, CreateUserDto.class, User.class);
-        user.setBasket(new ArrayList<>());
+    public TransferUserDto createEntity(CreateUserDto createEntity) {
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.saveEntity(user, User.class, USERS__DB_COLLECTION),
+                dbEntityUtility.saveEntity(createEntity, CreateUserDto.class, User.class, USERS__DB_COLLECTION),
                 User.class,
                 TransferUserDto.class
         );
     }
 
     @Override
-    public TransferUserDto getUserById(ObjectId userId) {
+    public TransferUserDto getEntityById(ObjectId entityId) {
         return mapperFromEntityToTransferDto.map(
-                fetchUserById(userId),
+                fetchUserById(entityId),
                 User.class,
                 TransferUserDto.class
         );
     }
 
     @Override
-    public Object getUserBy(Map<FieldNames, Object> criterias) {
+    public TransferUserDto getEntityByCriterias(Map<FieldNames, Object> criterias) {
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.findOneBy(criterias, User.class, USERS__DB_COLLECTION),
+                dbEntityUtility.findOneByOrThrow(criterias, User.class, USERS__DB_COLLECTION),
                 User.class,
                 TransferUserDto.class
         );
     }
 
     @Override
-    public List<TransferUserDto> getAllUsers() {
+    public List<TransferUserDto> getAllEntities() {
         return mapperFromEntityToTransferDto.mapToList(
                 dbEntityUtility.findAllByClass(User.class, USERS__DB_COLLECTION),
                 User.class,
@@ -72,23 +68,41 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
-    public TransferUserDto updateUserData(ObjectId userId, UpdateUserDto updateUserDto) {
-        User existingUser = fetchUserById(userId);
-        User userWithNewData = mapperFromUpdateDtoToEntity.map(updateUserDto, UpdateUserDto.class, User.class);
-        Map<FieldNames, Object> changes = differenceUtility.getChanges(existingUser, userWithNewData, User.class);
+    public boolean isEntityExistsByCriterias(Map<FieldNames, Object> criterias) {
+        return dbEntityUtility.isEntityExistsBy(criterias, User.class, USERS__DB_COLLECTION);
+    }
+
+    @Override
+    public TransferUserDto updateEntityById(ObjectId entityId, UpdateUserDto dtoWithNewData) {
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(existingUser, User.class, changes, USERS__DB_COLLECTION),
+                dbEntityUtility.updateEntity(Map.of(ID__FIELD_APPELLATION, entityId), dtoWithNewData, UpdateUserDto.class, User.class, USERS__DB_COLLECTION),
                 User.class,
                 TransferUserDto.class
         );
     }
 
     @Override
-    public TransferUserDto addWalletToUser(ObjectId userId, ObjectId walletId) {
-        User user = fetchUserById(userId);
-        Map<FieldNames, Object> changes = Map.of(WALLET_ID__FIELD_APPELLATION, walletId);
+    public TransferUserDto updateEntityBy(Map<FieldNames, Object> criterias, UpdateUserDto dtoWithNewData) {
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(user, User.class, changes, USERS__DB_COLLECTION),
+                dbEntityUtility.updateEntity(criterias, dtoWithNewData, UpdateUserDto.class, User.class, USERS__DB_COLLECTION),
+                User.class,
+                TransferUserDto.class
+        );
+    }
+
+    @Override
+    public void deleteEntityById(ObjectId entityId) {
+        dbEntityUtility.deleteEntityBy(Map.of(ID__FIELD_APPELLATION, entityId), User.class, USERS__DB_COLLECTION);
+    }
+
+    @Override
+    public TransferUserDto addWalletToUser(ObjectId userId, ObjectId walletId) {
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, userId);
+        User user = fetchUserById(userId);
+        user.setWalletId(walletId);
+        UpdateUserDto updateUserDto = mapperFromEntityToUpdateDto.map(user, User.class, UpdateUserDto.class);
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(searchCriterias, updateUserDto, UpdateUserDto.class, User.class, USERS__DB_COLLECTION),
                 User.class,
                 TransferUserDto.class
         );
@@ -96,27 +110,28 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public TransferUserDto addProductsToTheBucket(ObjectId userId, ProductName productName, double price, int amount) {
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, userId);
         User user = fetchUserById(userId);
-        List<Product> basket = user.getBasket();
-        addProductToTheBucket(basket, productName, price, amount);
-        Map<FieldNames, Object> changes = Map.of(BASKET__FIELD_APPELLATION, basket);
+        addProductToTheBucket(user, productName, price, amount);
+        UpdateUserDto updateUserDto = mapperFromEntityToUpdateDto.map(user, User.class, UpdateUserDto.class);
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(user, User.class, changes, USERS__DB_COLLECTION),
+                dbEntityUtility.updateEntity(searchCriterias, updateUserDto, UpdateUserDto.class, User.class, USERS__DB_COLLECTION),
                 User.class,
                 TransferUserDto.class
         );
     }
 
     @Override
-    public void deleteUser(ObjectId userId) {
-        dbEntityUtility.deleteEntityBy(Map.of(ID__FIELD_APPELLATION, userId), User.class, USERS__DB_COLLECTION);
+    public void deleteEntityByCriterias(Map<FieldNames, Object> criterias) {
+        dbEntityUtility.deleteEntityBy(criterias, User.class, USERS__DB_COLLECTION);
     }
 
     private User fetchUserById(ObjectId userId) {
         return dbEntityUtility.findOneBy(Map.of(ID__FIELD_APPELLATION, userId), User.class, USERS__DB_COLLECTION);
     }
 
-    private void addProductToTheBucket(List<Product> basket, ProductName productName, double price, int amount) {
+    private void addProductToTheBucket(User user, ProductName productName, double price, int amount) {
+        List<Product> basket = user.getBasket();
         if (isBasketContainsProduct(basket, productName)) {
             for (Product product : basket) {
                 if (product.getName().equals(productName)) {
@@ -136,5 +151,4 @@ public class UsersServiceImpl implements UsersService {
         }
         return false;
     }
-
 }

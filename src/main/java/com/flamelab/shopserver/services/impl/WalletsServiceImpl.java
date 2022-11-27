@@ -1,9 +1,11 @@
 package com.flamelab.shopserver.services.impl;
 
+import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
+import com.flamelab.shopserver.dtos.update.UpdateWalletDto;
 import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.enums.AmountActionType;
-import com.flamelab.shopserver.enums.OwnerType;
+import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.exceptions.WalletHasNotEnoughMoneyException;
 import com.flamelab.shopserver.services.WalletsService;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
@@ -13,32 +15,44 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.flamelab.shopserver.utiles.naming.DbCollectionNames.WALLETS__DB_COLLECTION;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.*;
+import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLATION;
+import static com.flamelab.shopserver.utiles.naming.FieldNames.OWNER_ID__FIELD_APPELLATION;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Service
 @RequiredArgsConstructor
 public class WalletsServiceImpl implements WalletsService {
 
     private final MapperUtility<Wallet, TransferWalletDto> mapperFromEntityToTransferDto;
-    private final DbEntityUtility<Wallet> dbEntityUtility;
+    private final MapperUtility<Wallet, UpdateWalletDto> mapperFromEntityToUpdateDto;
+    private final DbEntityUtility<Wallet, CreateWalletDto, UpdateWalletDto> dbEntityUtility;
 
     @Override
-    public TransferWalletDto createWallet(ObjectId ownerId, OwnerType ownerType) {
-        Wallet wallet = new Wallet(ownerId, ownerType, 0);
+    public TransferWalletDto createEntity(CreateWalletDto createEntity) {
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.saveEntity(wallet, Wallet.class, WALLETS__DB_COLLECTION),
+                dbEntityUtility.saveEntity(createEntity, CreateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION),
                 Wallet.class,
                 TransferWalletDto.class
         );
     }
 
     @Override
-    public TransferWalletDto getWalletById(ObjectId walletId) {
+    public TransferWalletDto getEntityById(ObjectId entityId) {
         return mapperFromEntityToTransferDto.map(
-                fetchWalletById(walletId),
+                fetchWalletById(entityId),
+                Wallet.class,
+                TransferWalletDto.class
+        );
+    }
+
+    @Override
+    public TransferWalletDto getEntityByCriterias(Map<FieldNames, Object> criterias) {
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.findOneBy(criterias, Wallet.class, WALLETS__DB_COLLECTION),
                 Wallet.class,
                 TransferWalletDto.class
         );
@@ -48,6 +62,58 @@ public class WalletsServiceImpl implements WalletsService {
     public TransferWalletDto getWalletByOwnerId(ObjectId ownerId) {
         return mapperFromEntityToTransferDto.map(
                 fetchWalletBy(Map.of(OWNER_ID__FIELD_APPELLATION, ownerId)),
+                Wallet.class,
+                TransferWalletDto.class
+        );
+    }
+
+    @Override
+    public List<TransferWalletDto> getAllEntities() {
+        return mapperFromEntityToTransferDto.mapToList(
+                dbEntityUtility.findAllByClass(Wallet.class, WALLETS__DB_COLLECTION),
+                Wallet.class,
+                TransferWalletDto.class
+        );
+    }
+
+    @Override
+    public boolean isEntityExistsByCriterias(Map<FieldNames, Object> criterias) {
+        return dbEntityUtility.isEntityExistsBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
+    }
+
+    @Override
+    public TransferWalletDto updateWalletAmount(ObjectId walletId, AmountActionType actionType, double amount) {
+        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, walletId);
+        Wallet wallet = fetchWalletBy(searchCriterias);
+        wallet.setAmount(changeAmount(wallet.getAmount(), actionType, amount));
+        UpdateWalletDto updateWalletDto = mapperFromEntityToUpdateDto.map(wallet, Wallet.class, UpdateWalletDto.class);
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(searchCriterias, updateWalletDto, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION),
+                Wallet.class,
+                TransferWalletDto.class
+        );
+    }
+
+    private double changeAmount(double walletAmount, AmountActionType actionType, double amount) {
+        switch (actionType) {
+            case INCREASE -> {
+                return walletAmount + amount;
+            }
+            case DECREASE -> {
+                if (walletAmount < amount) {
+                    throw new WalletHasNotEnoughMoneyException(String.format("The wallet with id '%s' has less money amount then '%s'", walletAmount, amount));
+                }
+                return walletAmount - amount;
+            }
+            default ->
+                    throw new ResourceException(BAD_REQUEST, String.format("Wrong AmountActionType provided. Provided action type: '%s'", actionType));
+        }
+    }
+
+    @Override
+    public TransferWalletDto updateEntityById(ObjectId entityId, UpdateWalletDto dtoWithNewData) {
+        return mapperFromEntityToTransferDto.map(
+                dbEntityUtility.updateEntity(Map.of(ID__FIELD_APPELLATION, entityId), dtoWithNewData, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION),
                 Wallet.class,
                 TransferWalletDto.class
         );
@@ -66,23 +132,22 @@ public class WalletsServiceImpl implements WalletsService {
     }
 
     @Override
-    public TransferWalletDto updateWalletAmount(ObjectId walletId, AmountActionType amountActionType, double amount) {
-        Wallet wallet = fetchWalletBy(Map.of(ID__FIELD_APPELLATION, walletId));
-        double resultAmount = increaseOrDecreaseWalletAmount(wallet.getAmount(), amountActionType, amount);
-        if (resultAmount < 0.0) {
-            throw new WalletHasNotEnoughMoneyException(String.format("The wallet with id '%s' has not enough money for making the payment", walletId));
-        }
-        Map<FieldNames, Object> changes = Map.of(AMOUNT__FIELD_APPELLATION, resultAmount);
+    public TransferWalletDto updateEntityBy(Map<FieldNames, Object> criterias, UpdateWalletDto dtoWithNewData) {
         return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(wallet, Wallet.class, changes, WALLETS__DB_COLLECTION),
+                dbEntityUtility.updateEntity(criterias, dtoWithNewData, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION),
                 Wallet.class,
                 TransferWalletDto.class
         );
     }
 
     @Override
-    public void deleteWalletById(ObjectId walletId) {
-        dbEntityUtility.deleteEntityBy(Map.of(ID__FIELD_APPELLATION, walletId), Wallet.class, WALLETS__DB_COLLECTION);
+    public void deleteEntityById(ObjectId entityId) {
+        dbEntityUtility.deleteEntityBy(Map.of(ID__FIELD_APPELLATION, entityId), Wallet.class, WALLETS__DB_COLLECTION);
+    }
+
+    @Override
+    public void deleteEntityByCriterias(Map<FieldNames, Object> criterias) {
+        dbEntityUtility.deleteEntityBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
     }
 
     private Wallet fetchWalletById(ObjectId walletId) {
@@ -91,18 +156,6 @@ public class WalletsServiceImpl implements WalletsService {
 
     private Wallet fetchWalletBy(Map<FieldNames, Object> criterias) {
         return dbEntityUtility.findOneBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
-    }
-
-    private double increaseOrDecreaseWalletAmount(double walletAmount, AmountActionType amountActionType, double amountDelta) {
-        switch (amountActionType) {
-            case INCREASE -> {
-                return walletAmount + amountDelta;
-            }
-            case DECREASE -> {
-                return walletAmount - amountDelta;
-            }
-            default -> throw new RuntimeException("Incorrect amountActionType value provided");
-        }
     }
 
 }
