@@ -32,8 +32,7 @@ public class ShopsManagerImpl implements ShopsManager {
     public TransferShopDto createShop(CreateShopDto createShopDto) {
         int shopCapitalOnOpening = 1000;
         TransferShopDto shop = shopsService.createEntity(createShopDto);
-        TransferWalletDto wallet = walletsService.createEntity(new CreateWalletDto(shop.getId(), SHOP, START_WALLET_AMOUNT));
-        walletsService.updateWalletAmount(wallet.getId(), INCREASE, shopCapitalOnOpening);
+        TransferWalletDto wallet = walletsService.createEntity(new CreateWalletDto(shop.getId(), SHOP, shopCapitalOnOpening));
         return shopsService.addWalletToShop(shop.getId(), wallet.getId());
     }
 
