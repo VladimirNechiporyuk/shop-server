@@ -38,7 +38,7 @@ public class DifferenceUtilityImpl<T extends ObjectWithData> implements Differen
                     && objectWithNewValuesMap.containsKey(fieldName)
                     && objectWithNewValuesMap.get(fieldName) != null
                     && !objectWithNewValuesMap.get(fieldName).equals(objectBeforeChangesMap.get(fieldName))) {
-                FieldNames fieldNameAppellation = FieldNames.getFieldAppellationByName(fieldName);
+                FieldNames fieldNameAppellation = FieldNames.getFieldAppellationByAppellation(fieldName);
                 changes.put(fieldNameAppellation, objectWithNewValuesMap.get(fieldName));
             }
         }

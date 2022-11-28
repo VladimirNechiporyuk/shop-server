@@ -1,10 +1,10 @@
 package com.flamelab.shopserver.utiles.naming;
 
-import com.flamelab.shopserver.exceptions.ResourceException;
+import com.flamelab.shopserver.exceptions.WrongCriteriaNameProvidedException;
 import jdk.jfr.Description;
-import org.springframework.http.HttpStatus;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import java.util.Arrays;
+import java.util.List;
 
 @Description("Fields naming is using for correct mapping from one object type to other during mapping and also for actions in data base" +
         "Fields related to classes in packages:" +
@@ -24,8 +24,7 @@ public enum FieldNames {
     OWNER_ID__FIELD_APPELLATION("ownerId"),
     OWNER_TYPE__FIELD_APPELLATION("ownerType"),
     AMOUNT__FIELD_APPELLATION("amount"),
-    PRODUCTS__FIELD_APPELLATION("products"),
-    ;
+    PRODUCTS__FIELD_APPELLATION("products");
 
     private final String field;
 
@@ -37,12 +36,48 @@ public enum FieldNames {
         return this.field;
     }
 
-    public static FieldNames getFieldAppellationByName(String name) {
+    public static List<FieldNames> asList() {
+        return Arrays.stream(FieldNames.values()).toList();
+    }
+
+    public static FieldNames getFieldAppellation(String name) {
+        if (containsField(name)) {
+            return getFieldAppellationByField(name);
+        } else if (containsAppellation(name)) {
+            return getFieldAppellationByAppellation(name);
+        }
+        throw new WrongCriteriaNameProvidedException(String.format("There is no field appellation with name: '%s'", name));
+    }
+
+    public static FieldNames getFieldAppellationByAppellation(String name) {
+        for (FieldNames fieldName : FieldNames.values()) {
+            if (fieldName.toString().equals(name)) {
+                return fieldName;
+            }
+        }
+        throw new WrongCriteriaNameProvidedException(String.format("There is no field appellation with name: '%s'", name));
+    }
+
+    public static FieldNames getFieldAppellationByField(String name) {
         for (FieldNames fieldName : FieldNames.values()) {
             if (fieldName.getField().equals(name)) {
                 return fieldName;
             }
         }
-        throw new ResourceException(NO_CONTENT, String.format("There is no field appellation with name: '%s'", name));
+        throw new WrongCriteriaNameProvidedException(String.format("There is no field appellation by field: '%s'", name));
     }
+
+    public static boolean containsAppellation(String name) {
+        return asList().stream().map(Enum::toString).toList().contains(name);
+    }
+
+    public static boolean containsField(String name) {
+        for (FieldNames fieldName : FieldNames.values()) {
+            if (fieldName.getField().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

@@ -30,8 +30,7 @@ public class ShopsManagerImpl implements ShopsManager {
 
     @Override
     public TransferShopDto createShop(CreateShopDto createShopDto) {
-        int START_WALLET_AMOUNT = 1000;
-        int shopCapitalOnOpening = 10000;
+        int shopCapitalOnOpening = 1000;
         TransferShopDto shop = shopsService.createEntity(createShopDto);
         TransferWalletDto wallet = walletsService.createEntity(new CreateWalletDto(shop.getId(), SHOP, START_WALLET_AMOUNT));
         walletsService.updateWalletAmount(wallet.getId(), INCREASE, shopCapitalOnOpening);

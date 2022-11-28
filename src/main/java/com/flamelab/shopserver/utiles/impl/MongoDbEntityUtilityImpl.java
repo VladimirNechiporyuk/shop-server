@@ -5,6 +5,7 @@ import com.flamelab.shopserver.dtos.update.CommonUpdateDto;
 import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.exceptions.MoreThanOneEntityExistsByQueryException;
 import com.flamelab.shopserver.exceptions.NoExistentEntityException;
+import com.flamelab.shopserver.exceptions.WrongCriteriaNameProvidedException;
 import com.flamelab.shopserver.utiles.ClassUtility;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
 import com.flamelab.shopserver.utiles.PrepareDataBeforeDbAction;
@@ -21,14 +22,12 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.flamelab.shopserver.utiles.naming.FieldNames.EMAIL__FIELD_APPELLATION;
 import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLATION;
+import static com.flamelab.shopserver.utiles.naming.FieldNames.getFieldAppellation;
 
 @Component
 @RequiredArgsConstructor
@@ -177,14 +176,24 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, C extends CommonCr
 
     private Query buildQuery(Map<FieldNames, Object> criterias) {
         Query query = new Query();
+        criterias = mapKeys(criterias);
         for (Map.Entry<FieldNames, Object> entry : criterias.entrySet()) {
             if (classUtility.isParameterAsList(entry.getValue())) {
                 List<Object> values = Arrays.asList(String.valueOf(entry.getValue()).split(separateSymbol));
-                values.forEach(value -> addCriteria(entry.getKey(), value, query));
+                values.forEach(value -> addCriteriaToQuery(entry.getKey(), value, query));
+            } else {
+                query.addCriteria(Criteria.where(entry.getKey().getField()).is(entry.getValue()));
             }
-            query.addCriteria(Criteria.where(entry.getKey().getField()).is(entry.getValue()));
         }
         return query;
+    }
+
+    private Map<FieldNames, Object> mapKeys(Map<FieldNames, Object> criterias) {
+        Map<FieldNames, Object> mapped = new HashMap<>();
+        for (Map.Entry<FieldNames, Object> entry : criterias.entrySet()) {
+            mapped.put(getFieldAppellation(entry.getKey().toString()), entry.getValue());
+        }
+        return mapped;
     }
 
     private Query buildQueryWithAnyValueFromSide(Map<FieldNames, Object> criterias, SideOfValue sideOfValue) {
@@ -206,7 +215,7 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, C extends CommonCr
         return query;
     }
 
-    private void addCriteria(FieldNames fieldName, Object value, Query query) {
+    private void addCriteriaToQuery(FieldNames fieldName, Object value, Query query) {
         query.addCriteria(Criteria.where(fieldName.getField()).is(value));
     }
 
