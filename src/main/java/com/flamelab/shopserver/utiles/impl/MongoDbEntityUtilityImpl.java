@@ -176,7 +176,6 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, C extends CommonCr
 
     private Query buildQuery(Map<FieldNames, Object> criterias) {
         Query query = new Query();
-        criterias = mapKeys(criterias);
         for (Map.Entry<FieldNames, Object> entry : criterias.entrySet()) {
             if (classUtility.isParameterAsList(entry.getValue())) {
                 List<Object> values = Arrays.asList(String.valueOf(entry.getValue()).split(separateSymbol));
@@ -186,14 +185,6 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, C extends CommonCr
             }
         }
         return query;
-    }
-
-    private Map<FieldNames, Object> mapKeys(Map<FieldNames, Object> criterias) {
-        Map<FieldNames, Object> mapped = new HashMap<>();
-        for (Map.Entry<FieldNames, Object> entry : criterias.entrySet()) {
-            mapped.put(getFieldAppellation(entry.getKey().toString()), entry.getValue());
-        }
-        return mapped;
     }
 
     private Query buildQueryWithAnyValueFromSide(Map<FieldNames, Object> criterias, SideOfValue sideOfValue) {

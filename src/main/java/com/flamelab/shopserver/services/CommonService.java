@@ -17,6 +17,8 @@ public interface CommonService<C extends CommonCreateDto, T extends CommonTransf
 
     T getEntityByCriterias(Map<FieldNames, Object> criterias);
 
+    List<T> getAllEntitiesByCriterias(Map<FieldNames, Object> criterias);
+
     List<T> getAllEntities();
 
     boolean isEntityExistsByCriterias(Map<FieldNames, Object> criterias);

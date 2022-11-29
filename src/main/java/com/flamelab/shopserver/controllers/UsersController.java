@@ -5,7 +5,6 @@ import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.managers.UsersManager;
-import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+import static com.flamelab.shopserver.utiles.naming.FieldMapper.mapCriterias;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -40,10 +40,10 @@ public class UsersController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getUserBy(@RequestParam Map<FieldNames, Object> criterias) {
+    public ResponseEntity<?> getUserBy(@RequestParam Map<String, Object> criterias) {
         return ResponseEntity
                 .status(OK)
-                .body(usersManager.getUserBy(criterias));
+                .body(usersManager.getUserBy(mapCriterias(criterias)));
     }
 
     @GetMapping("/all")
@@ -51,6 +51,13 @@ public class UsersController {
         return ResponseEntity
                 .status(OK)
                 .body(usersManager.getAllUsers());
+    }
+
+    @GetMapping("/allBy")
+    public ResponseEntity<List<TransferUserDto>> getAllUsersBy(@RequestParam Map<String, Object> criterias) {
+        return ResponseEntity
+                .status(OK)
+                .body(usersManager.getAllUsersByCriterias(mapCriterias(criterias)));
     }
 
     @GetMapping("/wallet/{userId}")

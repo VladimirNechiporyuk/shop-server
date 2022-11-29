@@ -59,6 +59,15 @@ public class WalletsServiceImpl implements WalletsService {
     }
 
     @Override
+    public List<TransferWalletDto> getAllEntitiesByCriterias(Map<FieldNames, Object> criterias) {
+        return mapperFromEntityToTransferDto.mapToList(
+                dbEntityUtility.findAllBy(criterias, Wallet.class, WALLETS__DB_COLLECTION),
+                Wallet.class,
+                TransferWalletDto.class
+        );
+    }
+
+    @Override
     public TransferWalletDto getWalletByOwnerId(ObjectId ownerId) {
         return mapperFromEntityToTransferDto.map(
                 fetchWalletBy(Map.of(OWNER_ID__FIELD_APPELLATION, ownerId)),

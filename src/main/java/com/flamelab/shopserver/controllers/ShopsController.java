@@ -5,13 +5,16 @@ import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.managers.ShopsManager;
+import com.flamelab.shopserver.utiles.naming.FieldMapper;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
+import static com.flamelab.shopserver.utiles.naming.FieldMapper.mapCriterias;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
@@ -35,11 +38,25 @@ public class ShopsController {
                 .body(shopsManager.getShopById(shopId));
     }
 
+    @GetMapping
+    public ResponseEntity<?> getShopBy(@RequestParam Map<String, Object> criterias) {
+        return ResponseEntity
+                .status(OK)
+                .body(shopsManager.getShopBy(mapCriterias(criterias)));
+    }
+
     @GetMapping("/all")
     public ResponseEntity<List<TransferShopDto>> getAllShops() {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getAllShops());
+    }
+
+    @GetMapping("/allBy")
+    public ResponseEntity<List<TransferShopDto>> getAllShopsBy(@RequestParam Map<String, Object> criterias) {
+        return ResponseEntity
+                .status(OK)
+                .body(shopsManager.getAllShopsByCriterias(mapCriterias(criterias)));
     }
 
     @GetMapping("/productsInTheShop/{shopId}")

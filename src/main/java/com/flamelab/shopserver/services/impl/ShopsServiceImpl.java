@@ -58,6 +58,15 @@ public class ShopsServiceImpl implements ShopsService {
     }
 
     @Override
+    public List<TransferShopDto> getAllEntitiesByCriterias(Map<FieldNames, Object> criterias) {
+        return mapperFromEntityToTransferDto.mapToList(
+                dbEntityUtility.findAllBy(criterias, Shop.class, SHOPS__DB_COLLECTION),
+                Shop.class,
+                TransferShopDto.class
+        );
+    }
+
+    @Override
     public List<TransferShopDto> getAllEntities() {
         return mapperFromEntityToTransferDto.mapToList(
                 dbEntityUtility.findAllByClass(Shop.class, SHOPS__DB_COLLECTION),

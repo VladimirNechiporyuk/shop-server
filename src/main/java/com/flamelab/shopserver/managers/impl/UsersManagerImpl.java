@@ -47,8 +47,13 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public Object getUserBy(Map<FieldNames, Object> criterias) {
+    public TransferUserDto getUserBy(Map<FieldNames, Object> criterias) {
         return usersService.getEntityByCriterias(criterias);
+    }
+
+    @Override
+    public List<TransferUserDto> getAllUsersByCriterias(Map<FieldNames, Object> criterias) {
+        return usersService.getAllEntitiesByCriterias(criterias);
     }
 
     @Override

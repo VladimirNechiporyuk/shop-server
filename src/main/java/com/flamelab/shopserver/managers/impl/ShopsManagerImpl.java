@@ -11,11 +11,13 @@ import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.managers.ShopsManager;
 import com.flamelab.shopserver.services.ShopsService;
 import com.flamelab.shopserver.services.WalletsService;
+import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.flamelab.shopserver.enums.AmountActionType.DECREASE;
 import static com.flamelab.shopserver.enums.AmountActionType.INCREASE;
@@ -42,8 +44,18 @@ public class ShopsManagerImpl implements ShopsManager {
     }
 
     @Override
+    public TransferShopDto getShopBy(Map<FieldNames, Object> criterias) {
+        return shopsService.getEntityByCriterias(criterias);
+    }
+
+    @Override
     public List<TransferShopDto> getAllShops() {
         return shopsService.getAllEntities();
+    }
+
+    @Override
+    public List<TransferShopDto> getAllShopsByCriterias(Map<FieldNames, Object> criterias) {
+        return null;
     }
 
     @Override

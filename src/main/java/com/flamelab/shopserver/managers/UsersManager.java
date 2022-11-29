@@ -17,7 +17,9 @@ public interface UsersManager {
 
     TransferUserDto getUserById(ObjectId userId);
 
-    Object getUserBy(Map<FieldNames, Object> criterias);
+    TransferUserDto getUserBy(Map<FieldNames, Object> criterias);
+
+    List<TransferUserDto> getAllUsersByCriterias(Map<FieldNames, Object> criterias);
 
     List<TransferUserDto> getAllUsers();
 

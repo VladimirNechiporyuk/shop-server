@@ -59,6 +59,15 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
+    public List<TransferUserDto> getAllEntitiesByCriterias(Map<FieldNames, Object> criterias) {
+        return mapperFromEntityToTransferDto.mapToList(
+                dbEntityUtility.findAllBy(criterias, User.class, USERS__DB_COLLECTION),
+                User.class,
+                TransferUserDto.class
+        );
+    }
+
+    @Override
     public List<TransferUserDto> getAllEntities() {
         return mapperFromEntityToTransferDto.mapToList(
                 dbEntityUtility.findAllByClass(User.class, USERS__DB_COLLECTION),

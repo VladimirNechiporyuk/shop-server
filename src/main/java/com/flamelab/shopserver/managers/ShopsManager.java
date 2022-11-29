@@ -7,16 +7,23 @@ import com.flamelab.shopserver.dtos.update.UpdateShopDto;
 import com.flamelab.shopserver.enums.AmountActionType;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.internal_data.Product;
+import com.flamelab.shopserver.utiles.naming.FieldNames;
 import org.bson.types.ObjectId;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ShopsManager {
     TransferShopDto createShop(CreateShopDto createShopDto);
 
     TransferShopDto getShopById(ObjectId id);
 
+    TransferShopDto getShopBy(Map<FieldNames, Object> criterias);
+
     List<TransferShopDto> getAllShops();
+
+    List<TransferShopDto> getAllShopsByCriterias(Map<FieldNames, Object> criterias);
 
     List<Product> getAllProductsInTheShop(ObjectId id);
 

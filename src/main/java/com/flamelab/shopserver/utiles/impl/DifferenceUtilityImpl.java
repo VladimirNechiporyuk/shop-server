@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.flamelab.shopserver.utiles.naming.FieldNames.getFieldAppellationByField;
+
 @Component
 @RequiredArgsConstructor
 public class DifferenceUtilityImpl<T extends ObjectWithData> implements DifferenceUtility<T> {
@@ -38,7 +40,7 @@ public class DifferenceUtilityImpl<T extends ObjectWithData> implements Differen
                     && objectWithNewValuesMap.containsKey(fieldName)
                     && objectWithNewValuesMap.get(fieldName) != null
                     && !objectWithNewValuesMap.get(fieldName).equals(objectBeforeChangesMap.get(fieldName))) {
-                FieldNames fieldNameAppellation = FieldNames.getFieldAppellationByAppellation(fieldName);
+                FieldNames fieldNameAppellation = getFieldAppellationByField(fieldName);
                 changes.put(fieldNameAppellation, objectWithNewValuesMap.get(fieldName));
             }
         }
