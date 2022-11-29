@@ -121,6 +121,17 @@ public class ShopsServiceImpl implements ShopsService {
     }
 
     @Override
+    public boolean isShopContainsProduct(ObjectId shopId, ProductName productName) {
+        Shop shop = fetchShopBy(Map.of(ID__FIELD_APPELLATION, shopId));
+        for (Product product : shop.getProducts()) {
+            if (product.getName().equals(productName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public TransferShopDto addWalletToShop(ObjectId shopId, ObjectId walletId) {
         Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, shopId);
         Shop shop = fetchShopById(shopId);
@@ -134,15 +145,20 @@ public class ShopsServiceImpl implements ShopsService {
     }
 
     @Override
-    public TransferShopDto getProductsFromTheStock(ObjectId shopId, ProductName productName, double price, int amount) {
+    public TransferShopDto addProductsToTheStore(ObjectId shopId, boolean isShopContainsProduct, ProductName productName, double price, int amount) {
         Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, shopId);
         Shop shop = fetchShopBy(searchCriterias);
-        Product product = fetchProductInShop(shop, productName);
-//        shop.getProducts().remove(product);
-        int productResultAmount = product.getAmount() + amount;
-        product.setAmount(productResultAmount);
-        product.setPrice(price);
-//        shop.getProducts().add(product);
+        Product product;
+        if (isShopContainsProduct) {
+            product = fetchProductInShop(shop, productName);
+            shop.getProducts().remove(product);
+            int productResultAmount = product.getAmount() + amount;
+            product.setAmount(productResultAmount);
+            product.setPrice(price);
+        } else {
+            product = new Product(productName, price, amount);
+        }
+        shop.getProducts().add(product);
         UpdateShopDto dtoWithNewData = mapperFromEntityToUpdateDto.map(shop, Shop.class, UpdateShopDto.class);
         return mapperFromEntityToTransferDto.map(
                 dbEntityUtility.updateEntity(searchCriterias, dtoWithNewData, UpdateShopDto.class, Shop.class, SHOPS__DB_COLLECTION),

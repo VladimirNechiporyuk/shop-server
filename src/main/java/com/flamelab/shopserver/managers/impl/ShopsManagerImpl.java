@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.flamelab.shopserver.enums.AmountActionType.DECREASE;
-import static com.flamelab.shopserver.enums.AmountActionType.INCREASE;
 import static com.flamelab.shopserver.enums.OwnerType.SHOP;
 
 @Service
@@ -76,13 +75,19 @@ public class ShopsManagerImpl implements ShopsManager {
     @Override
     public TransferShopDto buyProductsFromTheStock(ObjectId shopId, ProductName productName, double price, int amount) {
         TransferShopDto shop = shopsService.getEntityById(shopId);
-        Product product = shopsService.getProductData(shopId, productName);
+        Product product;
+        boolean isShopContainsProduct = shopsService.isShopContainsProduct(shopId, productName);
+        if (isShopContainsProduct) {
+            product = shopsService.getProductData(shopId, productName);
+        } else {
+            product = new Product(productName, price, amount);
+        }
         boolean isWalletAmountEnough = walletsService.isWalletHasEnoughAmountByOwnerId(shopId, amount);
         if (!isWalletAmountEnough) {
             throw new ShopHasNotEnoughMoneyException(String.format("The shop with id '%s' has money less then '%s' and can't do the payment", shopId, amount));
         }
         walletsService.updateWalletAmount(shop.getWalletId(), DECREASE, product.getAmount() * amount);
-        return shopsService.getProductsFromTheStock(shopId, productName, price, amount);
+        return shopsService.addProductsToTheStore(shopId, isShopContainsProduct, productName, price, amount);
     }
 
     @Override

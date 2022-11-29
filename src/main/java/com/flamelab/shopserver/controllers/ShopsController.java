@@ -32,7 +32,7 @@ public class ShopsController {
     }
 
     @GetMapping("/{shopId}")
-    public ResponseEntity<?> getShopById(@PathVariable ObjectId shopId) {
+    public ResponseEntity<?> getShopById(@PathVariable("shopId") ObjectId shopId) {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getShopById(shopId));
@@ -60,7 +60,7 @@ public class ShopsController {
     }
 
     @GetMapping("/productsInTheShop/{shopId}")
-    public ResponseEntity<?> getAllProductsInTheShop(@PathVariable("id") ObjectId shopId) {
+    public ResponseEntity<?> getAllProductsInTheShop(@PathVariable("shopId") ObjectId shopId) {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getAllProductsInTheShop(shopId));
@@ -74,7 +74,7 @@ public class ShopsController {
     }
 
     @PutMapping("/{shopId}")
-    public ResponseEntity<?> updateShopData(@PathVariable("id") ObjectId shopId, @RequestBody UpdateShopDto updateShopDto) {
+    public ResponseEntity<?> updateShopData(@PathVariable("shopId") ObjectId shopId, @RequestBody UpdateShopDto updateShopDto) {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.updateShopData(shopId, updateShopDto));
@@ -95,7 +95,7 @@ public class ShopsController {
     }
 
     @DeleteMapping("/{shopId}")
-    public ResponseEntity<?> deleteShop(@PathVariable("id") ObjectId shopId) {
+    public ResponseEntity<?> deleteShop(@PathVariable("shopId") ObjectId shopId) {
         shopsManager.deleteShop(shopId);
         return ResponseEntity
                 .status(ACCEPTED)

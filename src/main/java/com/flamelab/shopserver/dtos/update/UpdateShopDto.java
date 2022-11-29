@@ -1,6 +1,11 @@
 package com.flamelab.shopserver.dtos.update;
 
+import com.flamelab.shopserver.internal_data.Product;
+import com.mongodb.lang.Nullable;
 import lombok.*;
+import org.bson.types.ObjectId;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -10,5 +15,9 @@ import lombok.*;
 public class UpdateShopDto extends CommonUpdateDto {
 
     private String name;
+    @Nullable
+    private ObjectId walletId;
+    @Nullable
+    private List<Product> products;
 
 }

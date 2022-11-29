@@ -15,9 +15,11 @@ public interface ShopsService extends CommonService<CreateShopDto, TransferShopD
 
     Product getProductData(ObjectId shopId, ProductName productName);
 
+    boolean isShopContainsProduct(ObjectId shopId, ProductName productName);
+
     TransferShopDto addWalletToShop(ObjectId shopId, ObjectId walletId);
 
-    TransferShopDto getProductsFromTheStock(ObjectId shopId, ProductName productName, double price, int amount);
+    TransferShopDto addProductsToTheStore(ObjectId shopId, boolean isShopContainsProduct, ProductName productName, double price, int amount);
 
     TransferShopDto decreaseProductsAmount(ObjectId shopId, ProductName productName, int amount);
 
