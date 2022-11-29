@@ -2,6 +2,7 @@ package com.flamelab.shopserver.managers.impl;
 
 import com.flamelab.shopserver.dtos.create.CreateUserDto;
 import com.flamelab.shopserver.dtos.create.CreateWalletDto;
+import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
@@ -80,6 +81,8 @@ public class UsersManagerImpl implements UsersManager {
     @Override
     public TransferUserDto buyProducts(ObjectId userId, ObjectId shopId, ProductName productName, int amount) {
         Product productDataFromShop = shopsService.getProductData(shopId, productName);
+        TransferUserDto user = usersService.getEntityById(userId);
+        TransferShopDto shop = shopsService.getEntityById(shopId);
         if (productDataFromShop.getAmount() < amount) {
             throw new ShopHasNotEnoughProductsException(String.format("Shop with id '%s' has not enough amount of the product '%s'", shopId, productName));
         }
@@ -88,8 +91,8 @@ public class UsersManagerImpl implements UsersManager {
         if (!isWalletHasEnoughAmount) {
             throw new UserHasNotEnoughMoneyException(String.format("User with id '%s' has not enough money for buy the '%s'", userId, productName));
         } else {
-            walletsService.updateWalletAmount(userId, DECREASE, paymentMoney);
-            walletsService.updateWalletAmount(shopId, INCREASE, paymentMoney);
+            walletsService.updateWalletAmount(user.getWalletId(), DECREASE, paymentMoney);
+            walletsService.updateWalletAmount(shop.getWalletId(), INCREASE, paymentMoney);
             shopsService.decreaseProductsAmount(shopId, productName, amount);
             return usersService.addProductsToTheBucket(userId, productName, productDataFromShop.getPrice(), amount);
         }
