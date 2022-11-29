@@ -123,7 +123,6 @@ public class MongoDbEntityUtilityImpl<E extends CommonEntity, C extends CommonCr
                         updateDtoClass,
                         entityClass);
         Update update = new Update();
-        changes.put(EMAIL__FIELD_APPELLATION, "changed");
         for (Map.Entry<FieldNames, Object> entry : changes.entrySet()) {
             update.set(entry.getKey().getField(), entry.getValue());
         }

@@ -74,7 +74,7 @@ public class UsersManagerImpl implements UsersManager {
     @Override
     public TransferWalletDto deposit(ObjectId userId, int amount) {
         TransferUserDto user = usersService.getEntityById(userId);
-        return walletsService.updateWalletAmount(user.getId(), INCREASE, amount);
+        return walletsService.updateWalletAmount(user.getWalletId(), INCREASE, amount);
     }
 
     @Override
