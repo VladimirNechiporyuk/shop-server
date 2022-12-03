@@ -5,6 +5,3 @@ server:
 spring:
   application:
     name: shop-server
-  data:
-    mongodb:
-      database: shop-server
