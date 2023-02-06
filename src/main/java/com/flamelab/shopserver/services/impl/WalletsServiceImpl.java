@@ -27,62 +27,37 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @RequiredArgsConstructor
 public class WalletsServiceImpl implements WalletsService {
 
-    private final MapperUtility<Wallet, TransferWalletDto> mapperFromEntityToTransferDto;
     private final MapperUtility<Wallet, UpdateWalletDto> mapperFromEntityToUpdateDto;
     private final DbEntityUtility<Wallet, CreateWalletDto, UpdateWalletDto> dbEntityUtility;
 
     @Override
-    public TransferWalletDto createEntity(CreateWalletDto createEntity) {
-        return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.saveEntity(createEntity, CreateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public Wallet createEntity(CreateWalletDto createEntity) {
+        return dbEntityUtility.saveEntity(createEntity, CreateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION);
     }
 
     @Override
-    public TransferWalletDto getEntityById(ObjectId entityId) {
-        return mapperFromEntityToTransferDto.map(
-                fetchWalletById(entityId),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public Wallet getEntityById(ObjectId entityId) {
+        return fetchWalletById(entityId);
     }
 
     @Override
-    public TransferWalletDto getEntityByCriterias(Map<FieldNames, Object> criterias) {
-        return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.findOneBy(criterias, Wallet.class, WALLETS__DB_COLLECTION),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public Wallet getEntityByCriterias(Map<FieldNames, Object> criterias) {
+        return dbEntityUtility.findOneBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
     }
 
     @Override
-    public List<TransferWalletDto> getAllEntitiesByCriterias(Map<FieldNames, Object> criterias) {
-        return mapperFromEntityToTransferDto.mapToList(
-                dbEntityUtility.findAllBy(criterias, Wallet.class, WALLETS__DB_COLLECTION),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public List<Wallet> getAllEntitiesByCriterias(Map<FieldNames, Object> criterias) {
+        return dbEntityUtility.findAllBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
     }
 
     @Override
-    public TransferWalletDto getWalletByOwnerId(ObjectId ownerId) {
-        return mapperFromEntityToTransferDto.map(
-                fetchWalletBy(Map.of(OWNER_ID__FIELD_APPELLATION, ownerId)),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public Wallet getWalletByOwnerId(ObjectId ownerId) {
+        return fetchWalletBy(Map.of(OWNER_ID__FIELD_APPELLATION, ownerId));
     }
 
     @Override
-    public List<TransferWalletDto> getAllEntities() {
-        return mapperFromEntityToTransferDto.mapToList(
-                dbEntityUtility.findAllByClass(Wallet.class, WALLETS__DB_COLLECTION),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public List<Wallet> getAllEntities() {
+        return dbEntityUtility.findAllByClass(Wallet.class, WALLETS__DB_COLLECTION);
     }
 
     @Override
@@ -91,16 +66,12 @@ public class WalletsServiceImpl implements WalletsService {
     }
 
     @Override
-    public TransferWalletDto updateWalletAmount(ObjectId walletId, AmountActionType actionType, double amount) {
+    public Wallet updateWalletAmount(ObjectId walletId, AmountActionType actionType, double amount) {
         Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, walletId);
         Wallet wallet = fetchWalletBy(searchCriterias);
         wallet.setAmount(changeAmount(wallet.getAmount(), actionType, amount));
         UpdateWalletDto updateWalletDto = mapperFromEntityToUpdateDto.map(wallet, Wallet.class, UpdateWalletDto.class);
-        return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(searchCriterias, updateWalletDto, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+        return dbEntityUtility.updateEntity(searchCriterias, updateWalletDto, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION);
     }
 
     private double changeAmount(double walletAmount, AmountActionType actionType, double amount) {
@@ -120,12 +91,8 @@ public class WalletsServiceImpl implements WalletsService {
     }
 
     @Override
-    public TransferWalletDto updateEntityById(ObjectId entityId, UpdateWalletDto dtoWithNewData) {
-        return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(Map.of(ID__FIELD_APPELLATION, entityId), dtoWithNewData, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public Wallet updateEntityById(ObjectId entityId, UpdateWalletDto dtoWithNewData) {
+        return dbEntityUtility.updateEntity(Map.of(ID__FIELD_APPELLATION, entityId), dtoWithNewData, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION);
     }
 
     @Override
@@ -141,12 +108,8 @@ public class WalletsServiceImpl implements WalletsService {
     }
 
     @Override
-    public TransferWalletDto updateEntityBy(Map<FieldNames, Object> criterias, UpdateWalletDto dtoWithNewData) {
-        return mapperFromEntityToTransferDto.map(
-                dbEntityUtility.updateEntity(criterias, dtoWithNewData, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public Wallet updateEntityBy(Map<FieldNames, Object> criterias, UpdateWalletDto dtoWithNewData) {
+        return dbEntityUtility.updateEntity(criterias, dtoWithNewData, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION);
     }
 
     @Override

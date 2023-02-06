@@ -5,12 +5,15 @@ import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
+import com.flamelab.shopserver.entities.Shop;
+import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.exceptions.ShopHasNotEnoughMoneyException;
 import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.managers.ShopsManager;
 import com.flamelab.shopserver.services.ShopsService;
 import com.flamelab.shopserver.services.WalletsService;
+import com.flamelab.shopserver.utiles.MapperUtility;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -28,33 +31,55 @@ public class ShopsManagerImpl implements ShopsManager {
 
     private final ShopsService shopsService;
     private final WalletsService walletsService;
+    private final MapperUtility<Shop, TransferShopDto> shopMapperFromEntityToTransferDto;
+    private final MapperUtility<Wallet, TransferWalletDto> walletMapperFromEntityToTransferDto;
 
     @Override
     public TransferShopDto createShop(CreateShopDto createShopDto) {
         int shopCapitalOnOpening = 1000;
-        TransferShopDto shop = shopsService.createEntity(createShopDto);
-        TransferWalletDto wallet = walletsService.createEntity(new CreateWalletDto(shop.getId(), SHOP, shopCapitalOnOpening));
-        return shopsService.addWalletToShop(shop.getId(), wallet.getId());
+        Shop shop = shopsService.createEntity(createShopDto);
+        Wallet wallet = walletsService.createEntity(new CreateWalletDto(shop.getId(), SHOP, shopCapitalOnOpening));
+        return shopMapperFromEntityToTransferDto.map(
+                shopsService.addWalletToShop(shop.getId(), wallet.getId()),
+                Shop.class,
+                TransferShopDto.class
+        );
     }
 
     @Override
     public TransferShopDto getShopById(ObjectId id) {
-        return shopsService.getEntityById(id);
+        return shopMapperFromEntityToTransferDto.map(
+                shopsService.getEntityById(id),
+                Shop.class,
+                TransferShopDto.class
+        );
     }
 
     @Override
     public TransferShopDto getShopBy(Map<FieldNames, Object> criterias) {
-        return shopsService.getEntityByCriterias(criterias);
+        return shopMapperFromEntityToTransferDto.map(
+                shopsService.getEntityByCriterias(criterias),
+                Shop.class,
+                TransferShopDto.class
+        );
     }
 
     @Override
     public List<TransferShopDto> getAllShops() {
-        return shopsService.getAllEntities();
+        return shopMapperFromEntityToTransferDto.mapToList(
+                shopsService.getAllEntities(),
+                Shop.class,
+                TransferShopDto.class
+        );
     }
 
     @Override
     public List<TransferShopDto> getAllShopsByCriterias(Map<FieldNames, Object> criterias) {
-        return null;
+        return shopMapperFromEntityToTransferDto.mapToList(
+                shopsService.getAllEntitiesByCriterias(criterias),
+                Shop.class,
+                TransferShopDto.class
+        );
     }
 
     @Override
@@ -64,17 +89,25 @@ public class ShopsManagerImpl implements ShopsManager {
 
     @Override
     public TransferWalletDto getShopWallet(ObjectId shopId) {
-        return walletsService.getWalletByOwnerId(shopId);
+        return walletMapperFromEntityToTransferDto.map(
+                walletsService.getWalletByOwnerId(shopId),
+                Wallet.class,
+                TransferWalletDto.class
+        );
     }
 
     @Override
     public TransferShopDto updateShopData(ObjectId id, UpdateShopDto updateShopDto) {
-        return shopsService.updateEntityById(id, updateShopDto);
+        return shopMapperFromEntityToTransferDto.map(
+                shopsService.updateEntityById(id, updateShopDto),
+                Shop.class,
+                TransferShopDto.class
+        );
     }
 
     @Override
     public TransferShopDto buyProductsFromTheStock(ObjectId shopId, ProductName productName, double price, int amount) {
-        TransferShopDto shop = shopsService.getEntityById(shopId);
+        Shop shop = shopsService.getEntityById(shopId);
         Product product;
         boolean isShopContainsProduct = shopsService.isShopContainsProduct(shopId, productName);
         if (isShopContainsProduct) {
@@ -87,12 +120,20 @@ public class ShopsManagerImpl implements ShopsManager {
             throw new ShopHasNotEnoughMoneyException(String.format("The shop with id '%s' has money less then '%s' and can't do the payment", shopId, amount));
         }
         walletsService.updateWalletAmount(shop.getWalletId(), DECREASE, product.getAmount() * amount);
-        return shopsService.addProductsToTheStore(shopId, isShopContainsProduct, productName, price, amount);
+        return shopMapperFromEntityToTransferDto.map(
+                shopsService.addProductsToTheStore(shopId, isShopContainsProduct, productName, price, amount),
+                Shop.class,
+                TransferShopDto.class
+        );
     }
 
     @Override
     public TransferShopDto setProductPrice(ObjectId shopId, ProductName productName, double price) {
-        return shopsService.setProductPrice(shopId, productName, price);
+        return shopMapperFromEntityToTransferDto.map(
+                shopsService.setProductPrice(shopId, productName, price),
+                Shop.class,
+                TransferShopDto.class
+        );
     }
 
     @Override

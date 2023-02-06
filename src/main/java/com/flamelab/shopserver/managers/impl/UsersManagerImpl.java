@@ -2,10 +2,13 @@ package com.flamelab.shopserver.managers.impl;
 
 import com.flamelab.shopserver.dtos.create.CreateUserDto;
 import com.flamelab.shopserver.dtos.create.CreateWalletDto;
-import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
+import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
+import com.flamelab.shopserver.entities.Shop;
+import com.flamelab.shopserver.entities.User;
+import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.exceptions.ShopHasNotEnoughProductsException;
 import com.flamelab.shopserver.exceptions.UserHasNotEnoughMoneyException;
@@ -14,6 +17,7 @@ import com.flamelab.shopserver.managers.UsersManager;
 import com.flamelab.shopserver.services.ShopsService;
 import com.flamelab.shopserver.services.UsersService;
 import com.flamelab.shopserver.services.WalletsService;
+import com.flamelab.shopserver.utiles.MapperUtility;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -33,56 +37,90 @@ public class UsersManagerImpl implements UsersManager {
     private final UsersService usersService;
     private final ShopsService shopsService;
     private final WalletsService walletsService;
+    private final MapperUtility<User, TransferUserDto> userMapperFromEntityToTransferDto;
+    private final MapperUtility<Wallet, TransferWalletDto> walletMapperFromEntityToTransferDto;
 
     @Override
     public TransferUserDto createUser(CreateUserDto createUserDto) {
-        TransferUserDto user = usersService.createEntity(createUserDto);
+        User user = usersService.createEntity(createUserDto);
         int START_WALLET_AMOUNT = 0;
-        TransferWalletDto walletDto = walletsService.createEntity(new CreateWalletDto(user.getId(), USER, START_WALLET_AMOUNT));
-        return usersService.addWalletToUser(user.getId(), walletDto.getId());
+        Wallet wallet = walletsService.createEntity(new CreateWalletDto(user.getId(), USER, START_WALLET_AMOUNT));
+        return userMapperFromEntityToTransferDto.map(
+                usersService.addWalletToUser(user.getId(), wallet.getId()),
+                User.class,
+                TransferUserDto.class
+        );
     }
 
     @Override
     public TransferUserDto getUserById(ObjectId userId) {
-        return usersService.getEntityById(userId);
+        return userMapperFromEntityToTransferDto.map(
+                usersService.getEntityById(userId),
+                User.class,
+                TransferUserDto.class
+        );
     }
 
     @Override
     public TransferUserDto getUserBy(Map<FieldNames, Object> criterias) {
-        return usersService.getEntityByCriterias(criterias);
+        return userMapperFromEntityToTransferDto.map(
+                usersService.getEntityByCriterias(criterias),
+                User.class,
+                TransferUserDto.class
+        );
     }
 
     @Override
     public List<TransferUserDto> getAllUsersByCriterias(Map<FieldNames, Object> criterias) {
-        return usersService.getAllEntitiesByCriterias(criterias);
+        return userMapperFromEntityToTransferDto.mapToList(
+                usersService.getAllEntitiesByCriterias(criterias),
+                User.class,
+                TransferUserDto.class
+        );
     }
 
     @Override
     public List<TransferUserDto> getAllUsers() {
-        return usersService.getAllEntities();
+        return userMapperFromEntityToTransferDto.mapToList(
+                usersService.getAllEntities(),
+                User.class,
+                TransferUserDto.class
+        );
     }
 
     @Override
     public TransferWalletDto getUserWallet(ObjectId userId) {
-        return walletsService.getWalletByOwnerId(userId);
+        return walletMapperFromEntityToTransferDto.map(
+                walletsService.getWalletByOwnerId(userId),
+                Wallet.class,
+                TransferWalletDto.class
+        );
     }
 
     @Override
     public TransferUserDto updateUserData(ObjectId userId, UpdateUserDto updateUserDto) {
-        return usersService.updateEntityById(userId, updateUserDto);
+        return userMapperFromEntityToTransferDto.map(
+                usersService.updateEntityById(userId, updateUserDto),
+                User.class,
+                TransferUserDto.class
+        );
     }
 
     @Override
     public TransferWalletDto deposit(ObjectId userId, int amount) {
-        TransferUserDto user = usersService.getEntityById(userId);
-        return walletsService.updateWalletAmount(user.getWalletId(), INCREASE, amount);
+        User user = usersService.getEntityById(userId);
+        return walletMapperFromEntityToTransferDto.map(
+                walletsService.updateWalletAmount(user.getWalletId(), INCREASE, amount),
+                Wallet.class,
+                TransferWalletDto.class
+        );
     }
 
     @Override
     public TransferUserDto buyProducts(ObjectId userId, ObjectId shopId, ProductName productName, int amount) {
         Product productDataFromShop = shopsService.getProductData(shopId, productName);
-        TransferUserDto user = usersService.getEntityById(userId);
-        TransferShopDto shop = shopsService.getEntityById(shopId);
+        User user = usersService.getEntityById(userId);
+        Shop shop = shopsService.getEntityById(shopId);
         if (productDataFromShop.getAmount() < amount) {
             throw new ShopHasNotEnoughProductsException(String.format("Shop with id '%s' has not enough amount of the product '%s'", shopId, productName));
         }
@@ -94,7 +132,11 @@ public class UsersManagerImpl implements UsersManager {
             walletsService.updateWalletAmount(user.getWalletId(), DECREASE, paymentMoney);
             walletsService.updateWalletAmount(shop.getWalletId(), INCREASE, paymentMoney);
             shopsService.decreaseProductsAmount(shopId, productName, amount);
-            return usersService.addProductsToTheBucket(userId, productName, productDataFromShop.getPrice(), amount);
+            return userMapperFromEntityToTransferDto.map(
+                    usersService.addProductsToTheBucket(userId, productName, productDataFromShop.getPrice(), amount),
+                    User.class,
+                    TransferUserDto.class
+            );
         }
     }
 
@@ -103,5 +145,10 @@ public class UsersManagerImpl implements UsersManager {
         TransferUserDto user = getUserById(userId);
         walletsService.deleteEntityById(user.getWalletId());
         usersService.deleteEntityById(userId);
+    }
+
+    @Override
+    public void updateUserPassword(UpdateUserPasswordDto updateUserPasswordDto) {
+        usersService.updateUserPassword(updateUserPasswordDto);
     }
 }
