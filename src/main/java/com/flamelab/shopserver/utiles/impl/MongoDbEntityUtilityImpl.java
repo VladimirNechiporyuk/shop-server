@@ -5,7 +5,6 @@ import com.flamelab.shopserver.dtos.update.CommonUpdateDto;
 import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.exceptions.MoreThanOneEntityExistsByQueryException;
 import com.flamelab.shopserver.exceptions.NoExistentEntityException;
-import com.flamelab.shopserver.exceptions.WrongCriteriaNameProvidedException;
 import com.flamelab.shopserver.utiles.ClassUtility;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
 import com.flamelab.shopserver.utiles.PrepareDataBeforeDbAction;
@@ -22,12 +21,13 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.flamelab.shopserver.utiles.naming.FieldNames.EMAIL__FIELD_APPELLATION;
 import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLATION;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.getFieldAppellation;
 
 @Component
 @RequiredArgsConstructor

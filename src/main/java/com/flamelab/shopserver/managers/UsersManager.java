@@ -4,6 +4,7 @@ import com.flamelab.shopserver.dtos.create.CreateUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
+import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 import org.bson.types.ObjectId;
@@ -32,4 +33,6 @@ public interface UsersManager {
     TransferUserDto buyProducts(ObjectId userId, ObjectId shopId, ProductName productName, int amount);
 
     void deleteUser(ObjectId userId);
+
+    void updateUserPassword(UpdateUserPasswordDto updateUserPasswordDto);
 }

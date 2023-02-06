@@ -3,13 +3,14 @@ package com.flamelab.shopserver.services;
 import com.flamelab.shopserver.dtos.create.CreateShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
+import com.flamelab.shopserver.entities.Shop;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.internal_data.Product;
 import org.bson.types.ObjectId;
 
 import java.util.List;
 
-public interface ShopsService extends CommonService<CreateShopDto, TransferShopDto, UpdateShopDto> {
+public interface ShopsService extends CommonService<CreateShopDto, Shop, UpdateShopDto> {
 
     List<Product> getAllProductsInTheShop(ObjectId shopId);
 
@@ -17,12 +18,12 @@ public interface ShopsService extends CommonService<CreateShopDto, TransferShopD
 
     boolean isShopContainsProduct(ObjectId shopId, ProductName productName);
 
-    TransferShopDto addWalletToShop(ObjectId shopId, ObjectId walletId);
+    Shop addWalletToShop(ObjectId shopId, ObjectId walletId);
 
-    TransferShopDto addProductsToTheStore(ObjectId shopId, boolean isShopContainsProduct, ProductName productName, double price, int amount);
+    Shop addProductsToTheStore(ObjectId shopId, boolean isShopContainsProduct, ProductName productName, double price, int amount);
 
-    TransferShopDto decreaseProductsAmount(ObjectId shopId, ProductName productName, int amount);
+    Shop decreaseProductsAmount(ObjectId shopId, ProductName productName, int amount);
 
-    TransferShopDto setProductPrice(ObjectId shopId, ProductName productName, double price);
+    Shop setProductPrice(ObjectId shopId, ProductName productName, double price);
 
 }

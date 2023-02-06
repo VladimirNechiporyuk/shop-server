@@ -4,6 +4,7 @@ public enum DbCollectionNames {
 
     SHOPS__DB_COLLECTION("shops"),
     USERS__DB_COLLECTION("users"),
+    AUTH__DB_COLLECTION("authorization"),
     WALLETS__DB_COLLECTION("wallets");
 
     private final String collection;

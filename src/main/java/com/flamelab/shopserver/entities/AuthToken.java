@@ -1,4 +1,4 @@
-package com.flamelab.shopserver.dtos.create;
+package com.flamelab.shopserver.entities;
 
 import com.flamelab.shopserver.enums.Roles;
 import lombok.*;
@@ -8,11 +8,11 @@ import lombok.*;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class CreateUserDto extends CommonCreateDto {
+public class AuthToken extends CommonEntity {
 
-    private String name;
+    private String token;
     private String email;
-    private String password;
     private Roles role;
+    private Integer usageAmount;
 
 }

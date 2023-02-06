@@ -1,5 +1,6 @@
 package com.flamelab.shopserver.entities;
 
+import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.internal_data.Product;
 import lombok.*;
 import org.bson.types.ObjectId;
@@ -16,6 +17,8 @@ public class User extends CommonEntity {
 
     private String name;
     private String email;
+    private String password;
+    private Roles role;
     private ObjectId walletId;
     private List<Product> basket = new ArrayList<>();
 
