@@ -14,6 +14,7 @@ import com.flamelab.shopserver.services.UsersService;
 import com.flamelab.shopserver.utiles.MapperUtility;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class AuthManagerImpl implements AuthManager {
     private final AuthService authService;
     private final MapperUtility<AuthToken, TransferAuthTokenDto> mapperFromEntityToTransferDto;
     private final String INCORRECT_EMAIL_OR_PASSWORD_EXCEPTION_TEXT = "Entered email or password is not correct.";
+    private final PasswordEncoder encoder;
 
     @Override
     public TransferAuthTokenDto login(CreateUserAuthToken createUserAuthToken) {
@@ -66,7 +68,7 @@ public class AuthManagerImpl implements AuthManager {
 
     private InternalCreateUserAuthToken provideInternalAuthToken(CreateUserAuthToken createUserAuthToken, User user) {
         InternalCreateUserAuthToken internalCreateToken = new InternalCreateUserAuthToken();
-        internalCreateToken.setToken(ObjectId.get());
+        internalCreateToken.setToken(ObjectId.get().toHexString());
         internalCreateToken.setEmail(createUserAuthToken.getEmail());
         internalCreateToken.setRole(user.getRole());
         internalCreateToken.setUsageAmount(0);

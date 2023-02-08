@@ -12,7 +12,7 @@ import org.bson.types.ObjectId;
 @NoArgsConstructor
 public class InternalCreateUserAuthToken extends CommonCreateDto {
 
-    private ObjectId token;
+    private String token;
     private String email;
     private Roles role;
     private Integer usageAmount;
