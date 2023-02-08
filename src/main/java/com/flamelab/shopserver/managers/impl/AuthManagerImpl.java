@@ -66,7 +66,7 @@ public class AuthManagerImpl implements AuthManager {
 
     private InternalCreateUserAuthToken provideInternalAuthToken(CreateUserAuthToken createUserAuthToken, User user) {
         InternalCreateUserAuthToken internalCreateToken = new InternalCreateUserAuthToken();
-        internalCreateToken.setToken(ObjectId.get());
+        internalCreateToken.setToken(ObjectId.get().toHexString());
         internalCreateToken.setEmail(createUserAuthToken.getEmail());
         internalCreateToken.setRole(user.getRole());
         internalCreateToken.setUsageAmount(0);

@@ -6,6 +6,7 @@ import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.enums.Roles;
+import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.managers.AuthManager;
 import com.flamelab.shopserver.managers.UsersManager;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,7 @@ import java.util.Map;
 import static com.flamelab.shopserver.enums.Roles.ADMIN;
 import static com.flamelab.shopserver.enums.Roles.CUSTOMER;
 import static com.flamelab.shopserver.utiles.naming.FieldMapper.mapCriterias;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/users")
@@ -33,7 +33,17 @@ public class UsersController {
     private final AuthManager authManager;
 
     @PostMapping
-    public ResponseEntity<TransferUserDto> createUser(@RequestHeader String authorization, @RequestBody CreateUserDto createUserDto) {
+    public ResponseEntity<TransferUserDto> createUser(@RequestBody CreateUserDto createUserDto) {
+        if (createUserDto.getRole().equals(ADMIN)) {
+            throw new ResourceException(BAD_REQUEST, "Can't create admin by this");
+        }
+        return ResponseEntity
+                .status(CREATED)
+                .body(usersManager.createUser(createUserDto));
+    }
+
+    @PostMapping("/admin")
+    public ResponseEntity<TransferUserDto> createAdmin(@RequestHeader String authorization, @RequestBody CreateUserDto createUserDto) {
         if (createUserDto.getRole().equals(ADMIN)) {
             authManager.isAuthorized(authorization, List.of(ADMIN));
         }
