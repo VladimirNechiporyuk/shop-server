@@ -1,11 +1,10 @@
 package com.flamelab.shopserver.controllers;
 
-import com.flamelab.shopserver.dtos.create.CreateUserDto;
+import com.flamelab.shopserver.dtos.create.external.CreateUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
 import com.flamelab.shopserver.enums.ProductName;
-import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.managers.AuthManager;
 import com.flamelab.shopserver.managers.UsersManager;
@@ -15,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +33,7 @@ public class UsersController {
     @PostMapping
     public ResponseEntity<TransferUserDto> createUser(@RequestBody CreateUserDto createUserDto) {
         if (createUserDto.getRole().equals(ADMIN)) {
-            throw new ResourceException(BAD_REQUEST, "Can't create admin by this");
+            throw new ResourceException(UNAUTHORIZED, "Can't create ADMIN user by this api.");
         }
         return ResponseEntity
                 .status(CREATED)
@@ -125,8 +123,8 @@ public class UsersController {
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<?> deleteUser(@RequestHeader String authorization, @PathVariable("userId") ObjectId userId) {
-        authManager.isAuthorized(authorization, List.of(ADMIN));
-        usersManager.deleteUser(userId);
+        authManager.isAuthorized(authorization, List.of(ADMIN, CUSTOMER));
+        usersManager.deleteUser(userId, authorization);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
                 .build();

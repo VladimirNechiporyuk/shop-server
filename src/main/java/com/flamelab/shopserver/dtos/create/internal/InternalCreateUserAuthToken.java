@@ -1,9 +1,12 @@
-package com.flamelab.shopserver.internal_data;
+package com.flamelab.shopserver.dtos.create.internal;
 
 import com.flamelab.shopserver.dtos.create.CommonCreateDto;
+import com.flamelab.shopserver.enums.AuthTokenType;
 import com.flamelab.shopserver.enums.Roles;
 import lombok.*;
 import org.bson.types.ObjectId;
+
+import static com.flamelab.shopserver.enums.AuthTokenType.BEARER;
 
 @Getter
 @Setter
@@ -12,6 +15,8 @@ import org.bson.types.ObjectId;
 @NoArgsConstructor
 public class InternalCreateUserAuthToken extends CommonCreateDto {
 
+    private String userId;
+    private final String tokenType = BEARER.getTypeName();
     private String token;
     private String email;
     private Roles role;

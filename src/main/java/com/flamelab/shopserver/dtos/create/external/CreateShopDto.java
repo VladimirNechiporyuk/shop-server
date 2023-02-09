@@ -1,5 +1,6 @@
-package com.flamelab.shopserver.dtos.create;
+package com.flamelab.shopserver.dtos.create.external;
 
+import com.flamelab.shopserver.dtos.create.CommonCreateDto;
 import lombok.*;
 
 @Getter

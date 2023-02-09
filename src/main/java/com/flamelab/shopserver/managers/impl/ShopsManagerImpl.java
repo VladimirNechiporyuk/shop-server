@@ -1,16 +1,20 @@
 package com.flamelab.shopserver.managers.impl;
 
-import com.flamelab.shopserver.dtos.create.CreateShopDto;
-import com.flamelab.shopserver.dtos.create.CreateWalletDto;
+import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
+import com.flamelab.shopserver.dtos.create.external.CreateWalletDto;
+import com.flamelab.shopserver.dtos.create.internal.InternalCreateShop;
 import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
+import com.flamelab.shopserver.entities.AuthToken;
 import com.flamelab.shopserver.entities.Shop;
 import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.enums.ProductName;
+import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.exceptions.ShopHasNotEnoughMoneyException;
 import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.managers.ShopsManager;
+import com.flamelab.shopserver.services.AuthService;
 import com.flamelab.shopserver.services.ShopsService;
 import com.flamelab.shopserver.services.WalletsService;
 import com.flamelab.shopserver.utiles.MapperUtility;
@@ -24,6 +28,9 @@ import java.util.Map;
 
 import static com.flamelab.shopserver.enums.AmountActionType.DECREASE;
 import static com.flamelab.shopserver.enums.OwnerType.SHOP;
+import static com.flamelab.shopserver.enums.Roles.CUSTOMER;
+import static com.flamelab.shopserver.utiles.naming.FieldNames.TOKEN__FIELD_APPELLATION;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +38,14 @@ public class ShopsManagerImpl implements ShopsManager {
 
     private final ShopsService shopsService;
     private final WalletsService walletsService;
+    private final AuthService authService;
     private final MapperUtility<Shop, TransferShopDto> shopMapperFromEntityToTransferDto;
     private final MapperUtility<Wallet, TransferWalletDto> walletMapperFromEntityToTransferDto;
 
     @Override
-    public TransferShopDto createShop(CreateShopDto createShopDto) {
+    public TransferShopDto createShop(CreateShopDto createShopDto, String authorization) {
         int shopCapitalOnOpening = 1000;
-        Shop shop = shopsService.createEntity(createShopDto);
+        Shop shop = shopsService.createEntity(provideInternalCreateShop(createShopDto, authorization));
         Wallet wallet = walletsService.createEntity(new CreateWalletDto(shop.getId(), SHOP, shopCapitalOnOpening));
         return shopMapperFromEntityToTransferDto.map(
                 shopsService.addWalletToShop(shop.getId(), wallet.getId()),
@@ -46,10 +54,18 @@ public class ShopsManagerImpl implements ShopsManager {
         );
     }
 
+    private InternalCreateShop provideInternalCreateShop(CreateShopDto createShopDto, String authorization) {
+        AuthToken token = authService.getToken(Map.of(TOKEN__FIELD_APPELLATION, authorization));
+        InternalCreateShop internalCreateShop = new InternalCreateShop();
+        internalCreateShop.setName(createShopDto.getName());
+        internalCreateShop.setOwnerId(new ObjectId(token.getUserId()));
+        return internalCreateShop;
+    }
+
     @Override
-    public TransferShopDto getShopById(ObjectId id) {
+    public TransferShopDto getShopById(ObjectId shopId) {
         return shopMapperFromEntityToTransferDto.map(
-                shopsService.getEntityById(id),
+                shopsService.getEntityById(shopId),
                 Shop.class,
                 TransferShopDto.class
         );
@@ -83,8 +99,8 @@ public class ShopsManagerImpl implements ShopsManager {
     }
 
     @Override
-    public List<Product> getAllProductsInTheShop(ObjectId id) {
-        return shopsService.getAllProductsInTheShop(id);
+    public List<Product> getAllProductsInTheShop(ObjectId shopId) {
+        return shopsService.getAllProductsInTheShop(shopId);
     }
 
     @Override
@@ -97,9 +113,9 @@ public class ShopsManagerImpl implements ShopsManager {
     }
 
     @Override
-    public TransferShopDto updateShopData(ObjectId id, UpdateShopDto updateShopDto) {
+    public TransferShopDto updateShopData(ObjectId shopId, UpdateShopDto updateShopDto) {
         return shopMapperFromEntityToTransferDto.map(
-                shopsService.updateEntityById(id, updateShopDto),
+                shopsService.updateEntityById(shopId, updateShopDto),
                 Shop.class,
                 TransferShopDto.class
         );
@@ -137,7 +153,15 @@ public class ShopsManagerImpl implements ShopsManager {
     }
 
     @Override
-    public void deleteShop(ObjectId id) {
-        shopsService.deleteEntityById(id);
+    public void deleteShop(ObjectId shopId, String authorization) {
+        AuthToken token = authService.getToken(Map.of(TOKEN__FIELD_APPELLATION, authorization));
+        TransferShopDto shop = getShopById(shopId);
+        if (token.getRole().equals(CUSTOMER)) {
+            if (!shop.getOwnerId().equals(token.getUserId())) {
+                throw new ResourceException(BAD_REQUEST, "User can't delete other user");
+            }
+        }
+        shopsService.deleteEntityById(shopId);
+        walletsService.deleteEntityById(shop.getWalletId());
     }
 }

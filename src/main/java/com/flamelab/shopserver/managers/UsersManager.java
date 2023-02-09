@@ -1,6 +1,6 @@
 package com.flamelab.shopserver.managers;
 
-import com.flamelab.shopserver.dtos.create.CreateUserDto;
+import com.flamelab.shopserver.dtos.create.external.CreateUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
@@ -32,7 +32,7 @@ public interface UsersManager {
 
     TransferUserDto buyProducts(ObjectId userId, ObjectId shopId, ProductName productName, int amount);
 
-    void deleteUser(ObjectId userId);
+    void deleteUser(ObjectId userId, String authorization);
 
     void updateUserPassword(UpdateUserPasswordDto updateUserPasswordDto);
 }
