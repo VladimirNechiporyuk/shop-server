@@ -15,6 +15,7 @@ import java.util.List;
 public class Shop extends CommonEntity {
 
     private String name;
+    private ObjectId ownerId;
     private ObjectId walletId;
     private List<Product> products = new ArrayList<>();
 

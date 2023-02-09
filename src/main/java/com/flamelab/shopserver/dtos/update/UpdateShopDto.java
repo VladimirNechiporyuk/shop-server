@@ -16,8 +16,6 @@ public class UpdateShopDto extends CommonUpdateDto {
 
     private String name;
     @Nullable
-    private ObjectId walletId;
-    @Nullable
     private List<Product> products;
 
 }

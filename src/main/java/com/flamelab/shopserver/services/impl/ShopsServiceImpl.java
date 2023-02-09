@@ -1,6 +1,7 @@
 package com.flamelab.shopserver.services.impl;
 
-import com.flamelab.shopserver.dtos.create.CreateShopDto;
+import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
+import com.flamelab.shopserver.dtos.create.internal.InternalCreateShop;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
 import com.flamelab.shopserver.entities.Shop;
 import com.flamelab.shopserver.enums.ProductName;
@@ -26,11 +27,11 @@ import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLA
 public class ShopsServiceImpl implements ShopsService {
 
     private final MapperUtility<Shop, UpdateShopDto> mapperFromEntityToUpdateDto;
-    private final DbEntityUtility<Shop, CreateShopDto, UpdateShopDto> dbEntityUtility;
+    private final DbEntityUtility<Shop, InternalCreateShop, UpdateShopDto> dbEntityUtility;
 
     @Override
-    public Shop createEntity(CreateShopDto createEntity) {
-        return dbEntityUtility.saveEntity(createEntity, CreateShopDto.class, Shop.class, SHOPS__DB_COLLECTION);
+    public Shop createEntity(InternalCreateShop createEntity) {
+        return dbEntityUtility.saveEntity(createEntity, InternalCreateShop.class, Shop.class, SHOPS__DB_COLLECTION);
     }
 
     @Override
