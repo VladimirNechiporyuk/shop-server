@@ -1,7 +1,6 @@
 package com.flamelab.shopserver.services;
 
-import com.flamelab.shopserver.dtos.create.CreateWalletDto;
-import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
+import com.flamelab.shopserver.dtos.create.external.CreateWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateWalletDto;
 import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.enums.AmountActionType;

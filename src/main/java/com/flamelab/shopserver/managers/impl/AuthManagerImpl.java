@@ -1,16 +1,16 @@
 package com.flamelab.shopserver.managers.impl;
 
-import com.flamelab.shopserver.dtos.create.CreateUserAuthToken;
+import com.flamelab.shopserver.dtos.create.external.CreateUserAuthToken;
 import com.flamelab.shopserver.dtos.transafer.TransferAuthTokenDto;
 import com.flamelab.shopserver.entities.AuthToken;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.exceptions.EmailOrPasswordIsNotCorrectException;
 import com.flamelab.shopserver.exceptions.UnauthorizedUserException;
-import com.flamelab.shopserver.internal_data.InternalCreateUserAuthToken;
+import com.flamelab.shopserver.dtos.create.internal.InternalCreateUserAuthToken;
 import com.flamelab.shopserver.managers.AuthManager;
 import com.flamelab.shopserver.services.AuthService;
-import com.flamelab.shopserver.services.UsersService;
+import com.flamelab.shopserver.services.UserService;
 import com.flamelab.shopserver.utiles.MapperUtility;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -27,7 +27,7 @@ import static com.flamelab.shopserver.utiles.naming.FieldNames.TOKEN__FIELD_APPE
 @RequiredArgsConstructor
 public class AuthManagerImpl implements AuthManager {
 
-    private final UsersService usersService;
+    private final UserService userService;
     private final AuthService authService;
     private final MapperUtility<AuthToken, TransferAuthTokenDto> mapperFromEntityToTransferDto;
     private final String INCORRECT_EMAIL_OR_PASSWORD_EXCEPTION_TEXT = "Entered email or password is not correct.";
@@ -35,7 +35,7 @@ public class AuthManagerImpl implements AuthManager {
 
     @Override
     public TransferAuthTokenDto login(CreateUserAuthToken createUserAuthToken) {
-        User user = usersService.getEntityByCriterias(Map.of(EMAIL__FIELD_APPELLATION, createUserAuthToken.getEmail()));
+        User user = userService.getEntityByCriterias(Map.of(EMAIL__FIELD_APPELLATION, createUserAuthToken.getEmail()));
         if (user != null) {
             if (authService.isPasswordCorrect(user, createUserAuthToken.getPassword())) {
                 if (authService.isTokenExists(createUserAuthToken.getEmail())) {
@@ -55,6 +55,11 @@ public class AuthManagerImpl implements AuthManager {
     }
 
     @Override
+    public void logout(String authorization) {
+        authService.deleteTokenByValue(authorization);
+    }
+
+    @Override
     public void isAuthorized(String token, List<Roles> availableRoles) {
         if (token.isEmpty()) {
             throw new UnauthorizedUserException("Unauthorized");
@@ -68,6 +73,7 @@ public class AuthManagerImpl implements AuthManager {
 
     private InternalCreateUserAuthToken provideInternalAuthToken(CreateUserAuthToken createUserAuthToken, User user) {
         InternalCreateUserAuthToken internalCreateToken = new InternalCreateUserAuthToken();
+        internalCreateToken.setUserId(user.getId().toHexString());
         internalCreateToken.setToken(ObjectId.get().toHexString());
         internalCreateToken.setEmail(createUserAuthToken.getEmail());
         internalCreateToken.setRole(user.getRole());

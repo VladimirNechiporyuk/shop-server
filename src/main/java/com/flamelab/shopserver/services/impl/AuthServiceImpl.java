@@ -3,8 +3,10 @@ package com.flamelab.shopserver.services.impl;
 import com.flamelab.shopserver.dtos.update.UpdateUserAuthToken;
 import com.flamelab.shopserver.entities.AuthToken;
 import com.flamelab.shopserver.entities.User;
+import com.flamelab.shopserver.enums.AuthTokenType;
 import com.flamelab.shopserver.enums.Roles;
-import com.flamelab.shopserver.internal_data.InternalCreateUserAuthToken;
+import com.flamelab.shopserver.exceptions.ResourceException;
+import com.flamelab.shopserver.dtos.create.internal.InternalCreateUserAuthToken;
 import com.flamelab.shopserver.services.AuthService;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
 import com.flamelab.shopserver.utiles.MapperUtility;
@@ -15,15 +17,18 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static com.flamelab.shopserver.enums.AuthTokenType.BEARER;
 import static com.flamelab.shopserver.utiles.naming.DbCollectionNames.AUTH__DB_COLLECTION;
 import static com.flamelab.shopserver.utiles.naming.FieldNames.EMAIL__FIELD_APPELLATION;
 import static com.flamelab.shopserver.utiles.naming.FieldNames.TOKEN__FIELD_APPELLATION;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final int maxUsagesAmount = 5;
+    private final int MAX_USAGES_AMOUNT = 5;
+    private final AuthTokenType tokenType = BEARER;
     private final DbEntityUtility<AuthToken, InternalCreateUserAuthToken, UpdateUserAuthToken> dbEntityUtility;
     private final MapperUtility<AuthToken, UpdateUserAuthToken> mapperFromEntityToUpdateDto;
 
@@ -57,9 +62,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean isTokenValid(String tokenValue, List<Roles> availableRoles) {
+        if (tokenValue.startsWith(tokenType.getTypeName())) {
+            tokenValue = tokenValue.replace(tokenType.getTypeName() + " ", "");
+        } else {
+            throw new ResourceException(UNAUTHORIZED, "Wrong token provided");
+        }
         AuthToken token = getToken(Map.of(TOKEN__FIELD_APPELLATION, tokenValue));
-        return token.getUsageAmount() < maxUsagesAmount
-                && availableRoles.contains(token.getRole());
+        return token.getUsageAmount() < MAX_USAGES_AMOUNT && availableRoles.contains(token.getRole());
     }
 
     @Override

@@ -1,12 +1,12 @@
 package com.flamelab.shopserver.services.impl;
 
-import com.flamelab.shopserver.dtos.create.CreateUserDto;
+import com.flamelab.shopserver.dtos.create.external.CreateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.internal_data.Product;
-import com.flamelab.shopserver.services.UsersService;
+import com.flamelab.shopserver.services.UserService;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
 import com.flamelab.shopserver.utiles.MapperUtility;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
@@ -22,7 +22,7 @@ import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLA
 
 @Service
 @RequiredArgsConstructor
-public class UsersServiceImpl implements UsersService {
+public class UserServiceImpl implements UserService {
 
     private final MapperUtility<User, UpdateUserDto> mapperFromEntityToUpdateDto;
     private final DbEntityUtility<User, CreateUserDto, UpdateUserDto> dbEntityUtility;

@@ -1,14 +1,14 @@
 package com.flamelab.shopserver.controllers;
 
-import com.flamelab.shopserver.dtos.create.CreateUserAuthToken;
+import com.flamelab.shopserver.dtos.create.external.CreateUserAuthToken;
 import com.flamelab.shopserver.dtos.transafer.TransferAuthTokenDto;
+import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.managers.AuthManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -22,6 +22,15 @@ public class AuthController {
         return ResponseEntity
                 .status(200)
                 .body(authManager.login(createUserAuthToken));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<TransferAuthTokenDto> logoutUser(@RequestHeader String authorization) {
+        authManager.isAuthorized(authorization, List.of(Roles.values()));
+        authManager.logout(authorization);
+        return ResponseEntity
+                .status(200)
+                .build();
     }
 
 }

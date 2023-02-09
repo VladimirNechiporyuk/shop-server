@@ -3,7 +3,7 @@ package com.flamelab.shopserver.services;
 import com.flamelab.shopserver.entities.AuthToken;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.enums.Roles;
-import com.flamelab.shopserver.internal_data.InternalCreateUserAuthToken;
+import com.flamelab.shopserver.dtos.create.internal.InternalCreateUserAuthToken;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 
 import java.util.List;

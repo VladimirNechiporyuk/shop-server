@@ -18,6 +18,7 @@ import java.util.List;
 public class TransferShopDto extends CommonTransferDto {
 
     private String name;
+    private String ownerId;
     @JsonSerialize(using = StringJsonSerializer.class)
     private ObjectId walletId;
     private List<Product> products = new ArrayList<>();

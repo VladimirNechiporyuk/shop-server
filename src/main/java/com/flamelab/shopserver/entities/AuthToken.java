@@ -10,7 +10,9 @@ import lombok.*;
 @NoArgsConstructor
 public class AuthToken extends CommonEntity {
 
+    private String userId;
     private String token;
+    private String tokenType;
     private String email;
     private Roles role;
     private Integer usageAmount;

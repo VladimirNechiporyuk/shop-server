@@ -1,6 +1,6 @@
 package com.flamelab.shopserver.controllers;
 
-import com.flamelab.shopserver.dtos.create.CreateShopDto;
+import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
 import com.flamelab.shopserver.enums.ProductName;
@@ -31,7 +31,7 @@ public class ShopsController {
         authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT));
         return ResponseEntity
                 .status(CREATED)
-                .body(shopsManager.createShop(createShopDto));
+                .body(shopsManager.createShop(createShopDto, authorization));
     }
 
     @GetMapping("/{shopId}")
@@ -108,8 +108,8 @@ public class ShopsController {
 
     @DeleteMapping("/{shopId}")
     public ResponseEntity<?> deleteShop(@RequestHeader String authorization, @PathVariable("shopId") ObjectId shopId) {
-        authManager.isAuthorized(authorization, List.of(ADMIN));
-        shopsManager.deleteShop(shopId);
+        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT));
+        shopsManager.deleteShop(shopId, authorization);
         return ResponseEntity
                 .status(ACCEPTED)
                 .build();
