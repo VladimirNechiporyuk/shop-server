@@ -17,9 +17,9 @@ public interface AuthService {
 
     AuthToken getToken(Map<FieldNames, Object> criterias);
 
-    void increaseTokenUsageAmount(Map<FieldNames, Object> criterias);
+    AuthToken getTokenIfValid(String token, List<Roles> availableRoles);
 
-    boolean isTokenValid(String token, List<Roles> availableRoles);
+    void increaseTokenUsageAmount(AuthToken token, Map<FieldNames, Object> criterias);
 
     boolean isTokenExists(String email);
 

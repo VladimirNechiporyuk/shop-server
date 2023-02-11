@@ -26,7 +26,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<TransferAuthTokenDto> logoutUser(@RequestHeader String authorization) {
-        authManager.isAuthorized(authorization, List.of(Roles.values()));
+        authManager.validateAuthToken(authorization, List.of(Roles.values()));
         authManager.logout(authorization);
         return ResponseEntity
                 .status(200)

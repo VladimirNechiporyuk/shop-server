@@ -1,6 +1,7 @@
 package com.flamelab.shopserver.managers;
 
 import com.flamelab.shopserver.dtos.create.external.CreateUserDto;
+import com.flamelab.shopserver.dtos.transafer.TransferAuthTokenDto;
 import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
@@ -16,23 +17,21 @@ public interface UsersManager {
 
     TransferUserDto createUser(CreateUserDto createUserDto);
 
-    TransferUserDto getUserById(ObjectId userId);
+    TransferUserDto getUserById(TransferAuthTokenDto authToken, ObjectId userId);
 
-    TransferUserDto getUserBy(Map<FieldNames, Object> criterias);
+    List<TransferUserDto> getAllUsersByCriterias(TransferAuthTokenDto authToken, Map<FieldNames, Object> criterias);
 
-    List<TransferUserDto> getAllUsersByCriterias(Map<FieldNames, Object> criterias);
+    List<TransferUserDto> getAllUsers(TransferAuthTokenDto authToken);
 
-    List<TransferUserDto> getAllUsers();
+    TransferWalletDto getUserWallet(TransferAuthTokenDto authToken, ObjectId userId);
 
-    TransferWalletDto getUserWallet(ObjectId userId);
+    TransferUserDto updateUserData(TransferAuthTokenDto authToken, ObjectId userId, UpdateUserDto updateUserDto);
 
-    TransferUserDto updateUserData(ObjectId userId, UpdateUserDto updateUserDto);
+    TransferWalletDto deposit(TransferAuthTokenDto authToken, int amount);
 
-    TransferWalletDto deposit(ObjectId userId, int amount);
+    TransferUserDto buyProducts(TransferAuthTokenDto authToken, ObjectId shopId, ProductName productName, int amount);
 
-    TransferUserDto buyProducts(ObjectId userId, ObjectId shopId, ProductName productName, int amount);
+    void updateUserPassword(TransferAuthTokenDto authToken, UpdateUserPasswordDto updateUserPasswordDto);
 
-    void deleteUser(ObjectId userId, String authorization);
-
-    void updateUserPassword(UpdateUserPasswordDto updateUserPasswordDto);
+    void deleteUser(TransferAuthTokenDto authToken, ObjectId userId);
 }

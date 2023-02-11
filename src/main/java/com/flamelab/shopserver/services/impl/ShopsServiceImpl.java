@@ -1,6 +1,5 @@
 package com.flamelab.shopserver.services.impl;
 
-import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
 import com.flamelab.shopserver.dtos.create.internal.InternalCreateShop;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
 import com.flamelab.shopserver.entities.Shop;

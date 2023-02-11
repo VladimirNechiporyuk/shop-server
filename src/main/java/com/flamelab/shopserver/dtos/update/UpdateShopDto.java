@@ -3,7 +3,6 @@ package com.flamelab.shopserver.dtos.update;
 import com.flamelab.shopserver.internal_data.Product;
 import com.mongodb.lang.Nullable;
 import lombok.*;
-import org.bson.types.ObjectId;
 
 import java.util.List;
 

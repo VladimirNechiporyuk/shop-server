@@ -6,12 +6,15 @@ import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.enums.AuthTokenType;
 import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.exceptions.ResourceException;
+import com.flamelab.shopserver.exceptions.UnauthorizedUserException;
+import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.dtos.create.internal.InternalCreateUserAuthToken;
 import com.flamelab.shopserver.services.AuthService;
 import com.flamelab.shopserver.utiles.DbEntityUtility;
 import com.flamelab.shopserver.utiles.MapperUtility;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,7 +30,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final int MAX_USAGES_AMOUNT = 5;
+    private final int MAX_USAGES_AMOUNT = 10;
     private final AuthTokenType tokenType = BEARER;
     private final DbEntityUtility<AuthToken, InternalCreateUserAuthToken, UpdateUserAuthToken> dbEntityUtility;
     private final MapperUtility<AuthToken, UpdateUserAuthToken> mapperFromEntityToUpdateDto;
@@ -48,8 +51,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void increaseTokenUsageAmount(Map<FieldNames, Object> criterias) {
-        AuthToken token = getToken(criterias);
+    public AuthToken getTokenIfValid(String tokenValue, List<Roles> availableRoles) {
+        if (tokenValue.startsWith(tokenType.getTypeName())) {
+            tokenValue = tokenValue.replace(tokenType.getTypeName() + " ", "");
+        } else {
+            throw new ResourceException(UNAUTHORIZED, "Wrong token provided");
+        }
+        AuthToken token = getToken(Map.of(TOKEN__FIELD_APPELLATION, tokenValue));
+        if (token.getUsageAmount() < MAX_USAGES_AMOUNT && availableRoles.contains(token.getRole())) {
+            increaseTokenUsageAmount(token, Map.of(TOKEN__FIELD_APPELLATION, tokenValue));
+            return token;
+        } else {
+            deleteTokenByValue(tokenValue);
+            throw new UnauthorizedUserException("Unauthorized");
+        }
+    }
+
+    @Override
+    public void increaseTokenUsageAmount(AuthToken token, Map<FieldNames, Object> criterias) {
         token.setUsageAmount(token.getUsageAmount() + 1);
         dbEntityUtility.updateEntity(
                 criterias,
@@ -58,17 +77,6 @@ public class AuthServiceImpl implements AuthService {
                 AuthToken.class,
                 AUTH__DB_COLLECTION
         );
-    }
-
-    @Override
-    public boolean isTokenValid(String tokenValue, List<Roles> availableRoles) {
-        if (tokenValue.startsWith(tokenType.getTypeName())) {
-            tokenValue = tokenValue.replace(tokenType.getTypeName() + " ", "");
-        } else {
-            throw new ResourceException(UNAUTHORIZED, "Wrong token provided");
-        }
-        AuthToken token = getToken(Map.of(TOKEN__FIELD_APPELLATION, tokenValue));
-        return token.getUsageAmount() < MAX_USAGES_AMOUNT && availableRoles.contains(token.getRole());
     }
 
     @Override

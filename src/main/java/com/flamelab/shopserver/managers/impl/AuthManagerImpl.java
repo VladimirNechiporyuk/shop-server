@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.flamelab.shopserver.utiles.naming.FieldNames.EMAIL__FIELD_APPELLATION;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.TOKEN__FIELD_APPELLATION;
 
 @Service
 @RequiredArgsConstructor
@@ -60,15 +59,15 @@ public class AuthManagerImpl implements AuthManager {
     }
 
     @Override
-    public void isAuthorized(String token, List<Roles> availableRoles) {
+    public TransferAuthTokenDto validateAuthToken(String token, List<Roles> availableRoles) {
         if (token.isEmpty()) {
             throw new UnauthorizedUserException("Unauthorized");
         }
-        if (!authService.isTokenValid(token, availableRoles)) {
-            authService.deleteTokenByValue(token);
-            throw new UnauthorizedUserException("Unauthorized");
-        }
-        authService.increaseTokenUsageAmount(Map.of(TOKEN__FIELD_APPELLATION, token));
+        return mapperFromEntityToTransferDto.map(
+                authService.getTokenIfValid(token, availableRoles),
+                AuthToken.class,
+                TransferAuthTokenDto.class
+        );
     }
 
     private InternalCreateUserAuthToken provideInternalAuthToken(CreateUserAuthToken createUserAuthToken, User user) {
