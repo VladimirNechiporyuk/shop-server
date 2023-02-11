@@ -12,6 +12,6 @@ public interface AuthManager {
 
     void logout(String authorization);
 
-    void isAuthorized(String token, List<Roles> availableRoles);
+    TransferAuthTokenDto validateAuthToken(String token, List<Roles> availableRoles);
 
 }

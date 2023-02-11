@@ -4,6 +4,7 @@ import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
 import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
 import com.flamelab.shopserver.enums.ProductName;
+import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.managers.AuthManager;
 import com.flamelab.shopserver.managers.ShopsManager;
 import lombok.RequiredArgsConstructor;
@@ -25,34 +26,30 @@ public class ShopsController {
 
     private final ShopsManager shopsManager;
     private final AuthManager authManager;
+    private final List<Roles> ADMIN_ROLE = List.of(ADMIN);
+    private final List<Roles> ADMIN_AND_MERCHANT_ROLES = List.of(ADMIN, MERCHANT);
+    private final List<Roles> ADMIN_AND_MERCHANT_AND_CUSTOMER_ROLES = List.of(ADMIN, MERCHANT, CUSTOMER);
 
     @PostMapping
     public ResponseEntity<TransferShopDto> createShop(@RequestHeader String authorization, @RequestBody CreateShopDto createShopDto) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT));
         return ResponseEntity
                 .status(CREATED)
-                .body(shopsManager.createShop(createShopDto, authorization));
+                .body(shopsManager.createShop(
+                        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_ROLES),
+                        createShopDto));
     }
 
     @GetMapping("/{shopId}")
     public ResponseEntity<?> getShopById(@RequestHeader String authorization, @PathVariable("shopId") ObjectId shopId) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT, CUSTOMER));
+        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_AND_CUSTOMER_ROLES);
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getShopById(shopId));
     }
 
-    @GetMapping
-    public ResponseEntity<?> getShopBy(@RequestHeader String authorization, @RequestParam Map<String, Object> criterias) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT, CUSTOMER));
-        return ResponseEntity
-                .status(OK)
-                .body(shopsManager.getShopBy(mapCriterias(criterias)));
-    }
-
     @GetMapping("/all")
     public ResponseEntity<List<TransferShopDto>> getAllShops(@RequestHeader String authorization) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT, CUSTOMER));
+        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_AND_CUSTOMER_ROLES);
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getAllShops());
@@ -60,7 +57,7 @@ public class ShopsController {
 
     @GetMapping("/allBy")
     public ResponseEntity<List<TransferShopDto>> getAllShopsBy(@RequestHeader String authorization, @RequestParam Map<String, Object> criterias) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT, CUSTOMER));
+        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_AND_CUSTOMER_ROLES);
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getAllShopsByCriterias(mapCriterias(criterias)));
@@ -68,7 +65,7 @@ public class ShopsController {
 
     @GetMapping("/productsInTheShop/{shopId}")
     public ResponseEntity<?> getAllProductsInTheShop(@RequestHeader String authorization, @PathVariable("shopId") ObjectId shopId) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT, CUSTOMER));
+        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_AND_CUSTOMER_ROLES);
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getAllProductsInTheShop(shopId));
@@ -76,40 +73,49 @@ public class ShopsController {
 
     @GetMapping("/wallet/{shopId}")
     public ResponseEntity<?> getShopWallet(@RequestHeader String authorization, @PathVariable("shopId") ObjectId shopId) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT));
         return ResponseEntity
                 .status(OK)
-                .body(shopsManager.getShopWallet(shopId));
+                .body(shopsManager.getShopWallet(
+                        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_ROLES),
+                        shopId));
     }
 
     @PutMapping("/{shopId}")
     public ResponseEntity<?> updateShopData(@RequestHeader String authorization, @PathVariable("shopId") ObjectId shopId, @RequestBody UpdateShopDto updateShopDto) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT));
         return ResponseEntity
                 .status(OK)
-                .body(shopsManager.updateShopData(shopId, updateShopDto));
+                .body(shopsManager.updateShopData(
+                        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_ROLES),
+                        shopId,
+                        updateShopDto));
     }
 
     @PutMapping("/buyProductsFromTheStock")
     public ResponseEntity<?> buyProductsFromTheStock(@RequestHeader String authorization, @RequestParam ObjectId shopId, @RequestParam ProductName productName, @RequestParam double price, @RequestParam int amount) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT));
         return ResponseEntity
                 .status(OK)
-                .body(shopsManager.buyProductsFromTheStock(shopId, productName, price, amount));
+                .body(shopsManager.buyProductsFromTheStock(
+                        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_ROLES),
+                        shopId,
+                        productName,
+                        price,
+                        amount));
     }
 
     @PutMapping("/setProductPrice")
     public ResponseEntity<?> setProductPrice(@RequestHeader String authorization, @RequestParam ObjectId shopId, @RequestParam ProductName productName, @RequestParam double price) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT));
         return ResponseEntity
                 .status(OK)
-                .body(shopsManager.setProductPrice(shopId, productName, price));
+                .body(shopsManager.setProductPrice(
+                        authManager.validateAuthToken(authorization, ADMIN_AND_MERCHANT_ROLES),
+                        shopId,
+                        productName,
+                        price));
     }
 
     @DeleteMapping("/{shopId}")
     public ResponseEntity<?> deleteShop(@RequestHeader String authorization, @PathVariable("shopId") ObjectId shopId) {
-        authManager.isAuthorized(authorization, List.of(ADMIN, MERCHANT));
-        shopsManager.deleteShop(shopId, authorization);
+        shopsManager.deleteShop(authManager.validateAuthToken(authorization, ADMIN_ROLE), shopId);
         return ResponseEntity
                 .status(ACCEPTED)
                 .build();

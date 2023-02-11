@@ -2,11 +2,11 @@ package com.flamelab.shopserver.managers.impl;
 
 import com.flamelab.shopserver.dtos.create.external.CreateUserDto;
 import com.flamelab.shopserver.dtos.create.external.CreateWalletDto;
+import com.flamelab.shopserver.dtos.transafer.TransferAuthTokenDto;
 import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
 import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
-import com.flamelab.shopserver.entities.AuthToken;
 import com.flamelab.shopserver.entities.Shop;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.entities.Wallet;
@@ -16,7 +16,6 @@ import com.flamelab.shopserver.exceptions.ShopHasNotEnoughProductsException;
 import com.flamelab.shopserver.exceptions.UserHasNotEnoughMoneyException;
 import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.managers.UsersManager;
-import com.flamelab.shopserver.services.AuthService;
 import com.flamelab.shopserver.services.ShopsService;
 import com.flamelab.shopserver.services.UserService;
 import com.flamelab.shopserver.services.WalletsService;
@@ -32,9 +31,9 @@ import java.util.Map;
 import static com.flamelab.shopserver.enums.AmountActionType.DECREASE;
 import static com.flamelab.shopserver.enums.AmountActionType.INCREASE;
 import static com.flamelab.shopserver.enums.OwnerType.USER;
+import static com.flamelab.shopserver.enums.Roles.ADMIN;
 import static com.flamelab.shopserver.enums.Roles.MERCHANT;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.OWNER_ID__FIELD_APPELLATION;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.TOKEN__FIELD_APPELLATION;
+import static com.flamelab.shopserver.utiles.naming.FieldNames.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Service
@@ -43,7 +42,6 @@ public class UsersManagerImpl implements UsersManager {
 
     private final UserService userService;
     private final ShopsService shopsService;
-    private final AuthService authService;
     private final WalletsService walletsService;
     private final MapperUtility<User, TransferUserDto> userMapperFromEntityToTransferDto;
     private final MapperUtility<Wallet, TransferWalletDto> walletMapperFromEntityToTransferDto;
@@ -61,25 +59,22 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public TransferUserDto getUserById(ObjectId userId) {
+    public TransferUserDto getUserById(TransferAuthTokenDto authToken, ObjectId userId) {
+        User user;
+        if (authToken.getRole().equals(ADMIN)) {
+            user = userService.getEntityById(userId);
+        } else {
+            user = userService.getEntityById(new ObjectId(authToken.getUserId()));
+        }
         return userMapperFromEntityToTransferDto.map(
-                userService.getEntityById(userId),
+                user,
                 User.class,
                 TransferUserDto.class
         );
     }
 
     @Override
-    public TransferUserDto getUserBy(Map<FieldNames, Object> criterias) {
-        return userMapperFromEntityToTransferDto.map(
-                userService.getEntityByCriterias(criterias),
-                User.class,
-                TransferUserDto.class
-        );
-    }
-
-    @Override
-    public List<TransferUserDto> getAllUsersByCriterias(Map<FieldNames, Object> criterias) {
+    public List<TransferUserDto> getAllUsersByCriterias(TransferAuthTokenDto authToken, Map<FieldNames, Object> criterias) {
         return userMapperFromEntityToTransferDto.mapToList(
                 userService.getAllEntitiesByCriterias(criterias),
                 User.class,
@@ -88,7 +83,7 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public List<TransferUserDto> getAllUsers() {
+    public List<TransferUserDto> getAllUsers(TransferAuthTokenDto authToken) {
         return userMapperFromEntityToTransferDto.mapToList(
                 userService.getAllEntities(),
                 User.class,
@@ -97,7 +92,7 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public TransferWalletDto getUserWallet(ObjectId userId) {
+    public TransferWalletDto getUserWallet(TransferAuthTokenDto authToken, ObjectId userId) {
         return walletMapperFromEntityToTransferDto.map(
                 walletsService.getWalletByOwnerId(userId),
                 Wallet.class,
@@ -106,17 +101,23 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public TransferUserDto updateUserData(ObjectId userId, UpdateUserDto updateUserDto) {
+    public TransferUserDto updateUserData(TransferAuthTokenDto authToken, ObjectId userId, UpdateUserDto updateUserDto) {
+        User user;
+        if (authToken.getRole().equals(ADMIN)) {
+            user = userService.updateEntityById(userId, updateUserDto);
+        } else {
+            user = userService.updateEntityById(new ObjectId(authToken.getUserId()), updateUserDto);
+        }
         return userMapperFromEntityToTransferDto.map(
-                userService.updateEntityById(userId, updateUserDto),
+                user,
                 User.class,
                 TransferUserDto.class
         );
     }
 
     @Override
-    public TransferWalletDto deposit(ObjectId userId, int amount) {
-        User user = userService.getEntityById(userId);
+    public TransferWalletDto deposit(TransferAuthTokenDto authToken, int amount) {
+        User user = userService.getEntityById(new ObjectId(authToken.getUserId()));
         return walletMapperFromEntityToTransferDto.map(
                 walletsService.updateWalletAmount(user.getWalletId(), INCREASE, amount),
                 Wallet.class,
@@ -125,7 +126,8 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public TransferUserDto buyProducts(ObjectId userId, ObjectId shopId, ProductName productName, int amount) {
+    public TransferUserDto buyProducts(TransferAuthTokenDto authToken, ObjectId shopId, ProductName productName, int amount) {
+        ObjectId userId = new ObjectId(authToken.getUserId());
         Product productDataFromShop = shopsService.getProductData(shopId, productName);
         User user = userService.getEntityById(userId);
         Shop shop = shopsService.getEntityById(shopId);
@@ -149,13 +151,12 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public void deleteUser(ObjectId userId, String authorization) {
-        AuthToken token = authService.getToken(Map.of(TOKEN__FIELD_APPELLATION, authorization));
-        if (!userId.toHexString().equals(token.getUserId())) {
+    public void deleteUser(TransferAuthTokenDto authToken, ObjectId userId) {
+        if (!userId.toHexString().equals(authToken.getUserId())) {
             throw new ResourceException(BAD_REQUEST, "User can't delete other user");
         }
-        TransferUserDto user = getUserById(userId);
-        if (token.getRole().equals(MERCHANT)) {
+        TransferUserDto user = getUserById(authToken, userId);
+        if (authToken.getRole().equals(MERCHANT)) {
             shopsService.deleteEntityByCriterias(Map.of(OWNER_ID__FIELD_APPELLATION, userId));
         }
         walletsService.deleteEntityById(user.getWalletId());
@@ -163,7 +164,7 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public void updateUserPassword(UpdateUserPasswordDto updateUserPasswordDto) {
+    public void updateUserPassword(TransferAuthTokenDto authToken, UpdateUserPasswordDto updateUserPasswordDto) {
         userService.updateUserPassword(updateUserPasswordDto);
     }
 }
