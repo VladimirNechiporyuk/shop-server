@@ -102,7 +102,7 @@ public class UsersController {
         return ResponseEntity.status(OK).build();
     }
 
-    @PutMapping("/{amount}")
+    @PutMapping("/deposit/{amount}")
     public ResponseEntity<?> deposit(@RequestHeader String authorization, @PathVariable("amount") int amount) {
         return ResponseEntity
                 .status(OK)

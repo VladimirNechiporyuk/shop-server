@@ -18,9 +18,5 @@ public class UpdateUserDto extends CommonUpdateDto {
     private String name;
     private String email;
     private Roles role;
-    @Nullable
-    private ObjectId walletId;
-    @Nullable
-    private List<Product> basket;
 
 }
