@@ -5,6 +5,7 @@ import com.mongodb.lang.Nullable;
 import lombok.*;
 import org.bson.types.ObjectId;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -15,8 +16,8 @@ import java.util.List;
 public class UpdateShopDto extends CommonUpdateDto {
 
     private String name;
-    @Nullable
+    private ObjectId ownerId;
     private ObjectId walletId;
-    private List<Product> products;
+    private List<Product> products = new ArrayList<>();
 
 }
