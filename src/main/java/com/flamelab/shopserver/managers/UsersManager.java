@@ -1,9 +1,9 @@
 package com.flamelab.shopserver.managers;
 
 import com.flamelab.shopserver.dtos.create.external.CreateUserDto;
-import com.flamelab.shopserver.dtos.transafer.TransferAuthTokenDto;
-import com.flamelab.shopserver.dtos.transafer.TransferUserDto;
-import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
+import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
+import com.flamelab.shopserver.dtos.transfer.TransferUserDto;
+import com.flamelab.shopserver.dtos.transfer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
 import com.flamelab.shopserver.enums.ProductName;

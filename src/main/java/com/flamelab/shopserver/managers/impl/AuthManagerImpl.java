@@ -1,7 +1,7 @@
 package com.flamelab.shopserver.managers.impl;
 
 import com.flamelab.shopserver.dtos.create.external.CreateUserAuthToken;
-import com.flamelab.shopserver.dtos.transafer.TransferAuthTokenDto;
+import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
 import com.flamelab.shopserver.entities.AuthToken;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.enums.Roles;

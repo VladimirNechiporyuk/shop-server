@@ -1,4 +1,4 @@
-package com.flamelab.shopserver.dtos.transafer;
+package com.flamelab.shopserver.dtos.transfer;
 
 import com.flamelab.shopserver.enums.Roles;
 import lombok.*;

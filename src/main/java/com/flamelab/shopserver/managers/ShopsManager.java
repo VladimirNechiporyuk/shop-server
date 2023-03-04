@@ -1,16 +1,14 @@
 package com.flamelab.shopserver.managers;
 
 import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
-import com.flamelab.shopserver.dtos.transafer.TransferAuthTokenDto;
-import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
-import com.flamelab.shopserver.dtos.transafer.TransferWalletDto;
+import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
+import com.flamelab.shopserver.dtos.transfer.TransferShopDto;
+import com.flamelab.shopserver.dtos.transfer.TransferWalletDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
-import com.flamelab.shopserver.enums.AmountActionType;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.utiles.naming.FieldNames;
 import org.bson.types.ObjectId;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;

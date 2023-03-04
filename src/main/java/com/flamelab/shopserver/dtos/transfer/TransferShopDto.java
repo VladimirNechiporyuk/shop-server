@@ -1,7 +1,6 @@
-package com.flamelab.shopserver.dtos.transafer;
+package com.flamelab.shopserver.dtos.transfer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.utiles.serializers.StringJsonSerializer;
 import lombok.*;
@@ -15,13 +14,13 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class TransferUserDto extends CommonTransferDto {
+@AllArgsConstructor
+public class TransferShopDto extends CommonTransferDto {
 
     private String name;
-    private String email;
-    private Roles role;
+    private ObjectId ownerId;
     @JsonSerialize(using = StringJsonSerializer.class)
     private ObjectId walletId;
-    private List<Product> basket = new ArrayList<>();
+    private List<Product> products = new ArrayList<>();
 
 }

@@ -1,7 +1,7 @@
 package com.flamelab.shopserver.controllers;
 
 import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
-import com.flamelab.shopserver.dtos.transafer.TransferShopDto;
+import com.flamelab.shopserver.dtos.transfer.TransferShopDto;
 import com.flamelab.shopserver.dtos.update.UpdateShopDto;
 import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.enums.Roles;
