@@ -1,27 +1,21 @@
 package com.flamelab.shopserver.dtos.transfer;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.flamelab.shopserver.enums.Roles;
-import com.flamelab.shopserver.internal_data.Product;
-import com.flamelab.shopserver.utiles.serializers.StringJsonSerializer;
 import lombok.*;
-import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
 @NoArgsConstructor
-public class TransferUserDto extends CommonTransferDto {
+public class TransferUserDto extends TransferCommonDto {
 
-    private String name;
+    private String username;
     private String email;
+    private String walletId;
     private Roles role;
-    @JsonSerialize(using = StringJsonSerializer.class)
-    private ObjectId walletId;
-    private List<Product> basket = new ArrayList<>();
 
 }

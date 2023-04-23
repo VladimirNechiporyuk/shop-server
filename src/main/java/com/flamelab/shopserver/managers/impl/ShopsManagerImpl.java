@@ -1,33 +1,32 @@
 package com.flamelab.shopserver.managers.impl;
 
-import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
-import com.flamelab.shopserver.dtos.create.external.CreateWalletDto;
-import com.flamelab.shopserver.dtos.create.internal.InternalCreateShop;
+import com.flamelab.shopserver.dtos.create.CreateProductDto;
+import com.flamelab.shopserver.dtos.create.CreatePurchaseOperationDto;
+import com.flamelab.shopserver.dtos.create.CreateShopDto;
+import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
+import com.flamelab.shopserver.dtos.transfer.TransferProductDto;
 import com.flamelab.shopserver.dtos.transfer.TransferShopDto;
-import com.flamelab.shopserver.dtos.transfer.TransferWalletDto;
-import com.flamelab.shopserver.dtos.update.UpdateShopDto;
+import com.flamelab.shopserver.entities.CommonEntity;
+import com.flamelab.shopserver.entities.Product;
 import com.flamelab.shopserver.entities.Shop;
 import com.flamelab.shopserver.entities.Wallet;
-import com.flamelab.shopserver.enums.ProductName;
 import com.flamelab.shopserver.exceptions.ResourceException;
-import com.flamelab.shopserver.exceptions.ShopHasNotEnoughMoneyException;
-import com.flamelab.shopserver.internal_data.Product;
 import com.flamelab.shopserver.managers.ShopsManager;
+import com.flamelab.shopserver.mappers.ProductMapper;
+import com.flamelab.shopserver.mappers.ShopMapper;
+import com.flamelab.shopserver.services.ProductsService;
+import com.flamelab.shopserver.services.PurchaseOperationService;
 import com.flamelab.shopserver.services.ShopsService;
 import com.flamelab.shopserver.services.WalletsService;
-import com.flamelab.shopserver.utiles.MapperUtility;
-import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
-import static com.flamelab.shopserver.enums.AmountActionType.DECREASE;
-import static com.flamelab.shopserver.enums.OwnerType.SHOP;
-import static com.flamelab.shopserver.enums.Roles.CUSTOMER;
+import static com.flamelab.shopserver.enums.NumberActionType.DECREASE;
+import static com.flamelab.shopserver.enums.NumberActionType.INCREASE;
+import static com.flamelab.shopserver.enums.WalletOwnerTypes.SHOP;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Service
@@ -36,118 +35,127 @@ public class ShopsManagerImpl implements ShopsManager {
 
     private final ShopsService shopsService;
     private final WalletsService walletsService;
-    private final MapperUtility<Shop, TransferShopDto> shopMapperFromEntityToTransferDto;
-    private final MapperUtility<Wallet, TransferWalletDto> walletMapperFromEntityToTransferDto;
+    private final ProductsService productsService;
+    private final PurchaseOperationService purchaseOperationService;
+    private final ShopMapper shopMapper;
+    private final ProductMapper productMapper;
+    private final int START_SHOP_MONEY = 1000;
 
     @Override
     public TransferShopDto createShop(TransferAuthTokenDto authToken, CreateShopDto createShopDto) {
-        int shopCapitalOnOpening = 1000;
-        Shop shop = shopsService.createEntity(provideInternalCreateShop(createShopDto, authToken));
-        Wallet wallet = walletsService.createEntity(new CreateWalletDto(shop.getId(), SHOP, shopCapitalOnOpening));
-        return shopMapperFromEntityToTransferDto.map(
-                shopsService.addWalletToShop(shop.getId(), wallet.getId()),
-                Shop.class,
-                TransferShopDto.class
-        );
-    }
-
-    private InternalCreateShop provideInternalCreateShop(CreateShopDto createShopDto, TransferAuthTokenDto authToken) {
-        InternalCreateShop internalCreateShop = new InternalCreateShop();
-        internalCreateShop.setName(createShopDto.getName());
-        internalCreateShop.setOwnerId(new ObjectId(authToken.getUserId()));
-        return internalCreateShop;
+        Wallet wallet = walletsService.createWallet(new CreateWalletDto(START_SHOP_MONEY));
+        Shop shop = shopsService.createShop(createShopDto, wallet.getId(), authToken.getUserId());
+        walletsService.setWalletOwner(wallet.getId(), SHOP, shop.getId());
+        return shopMapper.mapToDto(shopsService.getShopById(shop.getId()));
     }
 
     @Override
-    public TransferShopDto getShopById(ObjectId shopId) {
-        return shopMapperFromEntityToTransferDto.map(
-                shopsService.getEntityById(shopId),
-                Shop.class,
-                TransferShopDto.class
-        );
+    public TransferShopDto getShopById(TransferAuthTokenDto authToken, String shopId) {
+        return shopMapper.mapToDto(shopsService.getShopById(shopId));
     }
 
     @Override
-    public List<TransferShopDto> getAllShops() {
-        return shopMapperFromEntityToTransferDto.mapToList(
-                shopsService.getAllEntities(),
-                Shop.class,
-                TransferShopDto.class
-        );
+    public List<TransferShopDto> getAllShops(TransferAuthTokenDto authToken) {
+        return shopMapper.mapToDtoList(shopsService.getAllShops());
     }
 
     @Override
-    public List<TransferShopDto> getAllShopsByCriterias(Map<FieldNames, Object> criterias) {
-        return shopMapperFromEntityToTransferDto.mapToList(
-                shopsService.getAllEntitiesByCriterias(criterias),
-                Shop.class,
-                TransferShopDto.class
-        );
+    public List<TransferShopDto> getAllShopsByOwnerId(TransferAuthTokenDto authToken, String ownerId) {
+        return shopMapper.mapToDtoList(shopsService.getAllShopsByOwnerId(ownerId));
     }
 
     @Override
-    public List<Product> getAllProductsInTheShop(ObjectId shopId) {
-        return shopsService.getAllProductsInTheShop(shopId);
+    public List<TransferShopDto> getAllShopsByTextInParameters(TransferAuthTokenDto validateAuthToken, String text) {
+        return shopMapper.mapToDtoList(shopsService.getAllShopsByTextInName(text));
     }
 
     @Override
-    public TransferWalletDto getShopWallet(TransferAuthTokenDto authToken, ObjectId shopId) {
-        return walletMapperFromEntityToTransferDto.map(
-                walletsService.getWalletByOwnerId(shopId),
-                Wallet.class,
-                TransferWalletDto.class
-        );
+    public List<TransferProductDto> getAllProductsInTheShop(TransferAuthTokenDto authToken, String shopId) {
+        return productMapper.mapToDtoList(productsService.getAllProductsByShopId(shopId));
     }
 
     @Override
-    public TransferShopDto updateShopData(TransferAuthTokenDto authToken, ObjectId shopId, UpdateShopDto updateShopDto) {
-        return shopMapperFromEntityToTransferDto.map(
-                shopsService.updateEntityById(shopId, updateShopDto),
-                Shop.class,
-                TransferShopDto.class
-        );
+    public TransferShopDto renameShop(TransferAuthTokenDto authToken, String shopId, String newName) {
+        return shopMapper.mapToDto(shopsService.renameShop(shopId, newName));
     }
 
     @Override
-    public TransferShopDto buyProductsFromTheStock(TransferAuthTokenDto authToken, ObjectId shopId, ProductName productName, double price, int amount) {
-        Shop shop = shopsService.getEntityById(shopId);
-        Product product;
-        boolean isShopContainsProduct = shopsService.isShopContainsProduct(shopId, productName);
-        if (isShopContainsProduct) {
-            product = shopsService.getProductData(shopId, productName);
+    public TransferProductDto renameProduct(TransferAuthTokenDto authToken, String productId, String newName) {
+        return productMapper.mapToDto(productsService.renameProduct(productId, newName));
+    }
+
+    @Override
+    public TransferProductDto buyProductsFromTheStock(TransferAuthTokenDto authToken, String shopId, String productName, int productAmount, double price) {
+        Wallet shopWallet = walletsService.getWalletByOwnerId(shopId);
+        double finalPrice = productAmount * price;
+        if (walletsService.isWalletHasEnoughAmountForPurchase(shopWallet.getId(), finalPrice)) {
+            Product product = productsService.createProduct(new CreateProductDto(shopId, productName, productAmount, price));
+            walletsService.updateWalletAmount(shopWallet.getId(), DECREASE, finalPrice);
+            purchaseOperationService.createPurchaseOperation(
+                    new CreatePurchaseOperationDto(productName, productAmount, finalPrice, shopId, authToken.getUserId()));
+            return productMapper.mapToDto(product);
         } else {
-            product = new Product(productName, price, amount);
+            Shop shop = shopsService.getShopById(shopId);
+            throw new ResourceException(BAD_REQUEST, String.format("Shop with name '%s' has not enough money for making this purchase.", shop.getName()));
         }
-        boolean isWalletAmountEnough = walletsService.isWalletHasEnoughAmountByOwnerId(shopId, amount);
-        if (!isWalletAmountEnough) {
-            throw new ShopHasNotEnoughMoneyException(String.format("The shop with id '%s' has money less then '%s' and can't do the payment", shopId, amount));
-        }
-        walletsService.updateWalletAmount(shop.getWalletId(), DECREASE, product.getAmount() * amount);
-        return shopMapperFromEntityToTransferDto.map(
-                shopsService.addProductsToTheStore(shopId, isShopContainsProduct, productName, price, amount),
-                Shop.class,
-                TransferShopDto.class
-        );
     }
 
     @Override
-    public TransferShopDto setProductPrice(TransferAuthTokenDto authToken, ObjectId shopId, ProductName productName, double price) {
-        return shopMapperFromEntityToTransferDto.map(
-                shopsService.setProductPrice(shopId, productName, price),
-                Shop.class,
-                TransferShopDto.class
-        );
+    public TransferProductDto buyExistsProductsFromTheStock(TransferAuthTokenDto authToken, String shopId, String productId, double productCost, int productAmount) {
+        Wallet shopWallet = walletsService.getWalletByOwnerId(shopId);
+        double finalPrice = productAmount * productCost;
+        if (walletsService.isWalletHasEnoughAmountForPurchase(shopWallet.getId(), finalPrice)) {
+            Product product = productsService.getProductById(productId);
+            productsService.updateProductAmount(productId, INCREASE, product.getAmount() + productAmount);
+            product = productsService.setProductPrice(productId, productCost);
+            walletsService.updateWalletAmount(shopWallet.getId(), DECREASE, finalPrice);
+            purchaseOperationService.createPurchaseOperation(
+                    new CreatePurchaseOperationDto(product.getName(), productAmount, finalPrice, shopId, authToken.getUserId()));
+            return productMapper.mapToDto(product);
+        } else {
+            Shop shop = shopsService.getShopById(shopId);
+            throw new ResourceException(BAD_REQUEST, String.format("Shop with name '%s' has not enough money for making this purchase.", shop.getName()));
+        }
     }
 
     @Override
-    public void deleteShop(TransferAuthTokenDto authToken, ObjectId shopId) {
-        TransferShopDto shop = getShopById(shopId);
-        if (authToken.getRole().equals(CUSTOMER)) {
-            if (!shop.getOwnerId().equals(authToken.getUserId())) {
-                throw new ResourceException(BAD_REQUEST, "User can't delete other user");
-            }
+    public TransferProductDto buyProductsFromTheShop(TransferAuthTokenDto authToken, String shopId, String productName, int productAmount) {
+        Shop shop = shopsService.getShopById(shopId);
+        Product product = productsService.getProductByShopAndName(shopId, shop.getName(), productName);
+        Wallet shopWallet = walletsService.getWalletByOwnerId(shopId);
+        Wallet userWallet = walletsService.getWalletByOwnerId(authToken.getUserId());
+        double finalPrice = product.getPrice() * productAmount;
+        if (productsService.isEnoughAmountOfProducts(product.getId(), productAmount) && walletsService.isWalletHasEnoughAmountForPurchase(userWallet.getOwnerId(), finalPrice)) {
+            product = productsService.updateProductAmount(product.getId(), DECREASE, productAmount);
+            walletsService.updateWalletAmount(userWallet.getId(), DECREASE, finalPrice);
+            walletsService.updateWalletAmount(shopWallet.getId(), INCREASE, finalPrice);
+            purchaseOperationService.createPurchaseOperation(
+                    new CreatePurchaseOperationDto(product.getName(), productAmount, finalPrice, shopId, authToken.getUserId()));
+            return productMapper.mapToDto(product);
+        } else {
+            throw new ResourceException(BAD_REQUEST, String.format("Product with name '%s' has not enough amount in the shop with name '%s'", product.getName(), shop.getName()));
         }
-        shopsService.deleteEntityById(shopId);
-        walletsService.deleteEntityById(shop.getWalletId());
+    }
+
+    @Override
+    public TransferProductDto setProductPrice(TransferAuthTokenDto authToken, String productId, double newPrice) {
+        return productMapper.mapToDto(productsService.setProductPrice(productId, newPrice));
+    }
+
+    @Override
+    public TransferProductDto setProductAmount(TransferAuthTokenDto validateAuthToken, String productId, int newAmount) {
+        return productMapper.mapToDto(productsService.updateProductAmount(productId, null, newAmount));
+    }
+
+    @Override
+    public TransferProductDto deleteProductAmount(TransferAuthTokenDto validateAuthToken, String productId, int amount) {
+        return productMapper.mapToDto(productsService.updateProductAmount(productId, DECREASE, amount));
+    }
+
+    @Override
+    public void deleteShop(TransferAuthTokenDto authToken, String shopId) {
+        shopsService.deleteShop(shopId);
+        List<String> productsIds = productsService.getAllProductsByShopId(shopId).stream().map(CommonEntity::getId).toList();
+        productsService.deleteProducts(productsIds);
     }
 }

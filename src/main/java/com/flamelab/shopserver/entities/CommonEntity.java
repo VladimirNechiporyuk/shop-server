@@ -1,22 +1,18 @@
 package com.flamelab.shopserver.entities;
 
-import com.flamelab.shopserver.utiles.data.ObjectWithData;
-import lombok.*;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
-@Getter
-@Setter
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class CommonEntity extends ObjectWithData {
+public abstract class CommonEntity {
 
-    private ObjectId id;
+    private String id;
     private LocalDateTime createdDate;
     private LocalDateTime lastUpdatedDate;
 

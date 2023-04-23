@@ -1,22 +1,24 @@
 package com.flamelab.shopserver.entities;
 
-import com.flamelab.shopserver.internal_data.Product;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.*;
-import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@Entity
+@Table(name = "shops")
 public class Shop extends CommonEntity {
 
     private String name;
-    private ObjectId ownerId;
-    private ObjectId walletId;
-    private List<Product> products = new ArrayList<>();
+    private String ownerId;
+    private String walletId;
 
 }

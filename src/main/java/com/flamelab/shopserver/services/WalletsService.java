@@ -1,19 +1,29 @@
 package com.flamelab.shopserver.services;
 
-import com.flamelab.shopserver.dtos.create.external.CreateWalletDto;
-import com.flamelab.shopserver.dtos.update.UpdateWalletDto;
+import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.entities.Wallet;
-import com.flamelab.shopserver.enums.AmountActionType;
-import org.bson.types.ObjectId;
+import com.flamelab.shopserver.enums.NumberActionType;
+import com.flamelab.shopserver.enums.WalletOwnerTypes;
 
-public interface WalletsService extends CommonService<CreateWalletDto, Wallet, UpdateWalletDto> {
+import java.util.List;
 
-    Wallet getWalletByOwnerId(ObjectId ownerId);
+public interface WalletsService {
 
-    Wallet updateWalletAmount(ObjectId walletId, AmountActionType actionType, double amount);
+    Wallet createWallet(CreateWalletDto createWalletDto);
 
-    boolean isWalletHasEnoughAmountByWalletId(ObjectId walletId, double paymentMoney);
+    Wallet getWalletById(String walletId);
 
-    boolean isWalletHasEnoughAmountByOwnerId(ObjectId ownerId, double paymentMoney);
+    Wallet getWalletByOwnerId(String ownerId);
 
+    List<Wallet> getAllWallets();
+
+    Wallet updateWalletAmount(String walletId, NumberActionType actionType, double amount);
+
+    Wallet setWalletOwner(String walletId, WalletOwnerTypes ownerType, String ownerId);
+
+    Wallet setWalletAmount(String walletId, double amount);
+
+    boolean isWalletHasEnoughAmountForPurchase(String walletId, double purchasePrice);
+
+    void deleteWallet(String walletId);
 }

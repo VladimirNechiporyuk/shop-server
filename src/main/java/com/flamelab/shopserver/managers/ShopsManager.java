@@ -1,37 +1,41 @@
 package com.flamelab.shopserver.managers;
 
-import com.flamelab.shopserver.dtos.create.external.CreateShopDto;
+import com.flamelab.shopserver.dtos.create.CreateShopDto;
 import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
+import com.flamelab.shopserver.dtos.transfer.TransferProductDto;
 import com.flamelab.shopserver.dtos.transfer.TransferShopDto;
-import com.flamelab.shopserver.dtos.transfer.TransferWalletDto;
-import com.flamelab.shopserver.dtos.update.UpdateShopDto;
-import com.flamelab.shopserver.enums.ProductName;
-import com.flamelab.shopserver.internal_data.Product;
-import com.flamelab.shopserver.utiles.naming.FieldNames;
-import org.bson.types.ObjectId;
 
 import java.util.List;
-import java.util.Map;
 
 public interface ShopsManager {
 
     TransferShopDto createShop(TransferAuthTokenDto authToken, CreateShopDto createShopDto);
 
-    TransferShopDto getShopById(ObjectId id);
+    TransferShopDto getShopById(TransferAuthTokenDto authToken, String shopId);
 
-    List<TransferShopDto> getAllShops();
+    List<TransferShopDto> getAllShops(TransferAuthTokenDto authToken);
 
-    List<TransferShopDto> getAllShopsByCriterias(Map<FieldNames, Object> criterias);
+    List<TransferShopDto> getAllShopsByOwnerId(TransferAuthTokenDto authToken, String ownerId);
 
-    List<Product> getAllProductsInTheShop(ObjectId shopId);
+    List<TransferShopDto> getAllShopsByTextInParameters(TransferAuthTokenDto validateAuthToken, String text);
 
-    TransferWalletDto getShopWallet(TransferAuthTokenDto authToken, ObjectId shopId);
+    List<TransferProductDto> getAllProductsInTheShop(TransferAuthTokenDto authToken, String shopId);
 
-    TransferShopDto updateShopData(TransferAuthTokenDto authToken, ObjectId shopId, UpdateShopDto updateShopDto);
+    TransferShopDto renameShop(TransferAuthTokenDto authToken, String shopId, String newName);
 
-    TransferShopDto buyProductsFromTheStock(TransferAuthTokenDto authToken, ObjectId shopId, ProductName productName, double price, int amount);
+    TransferProductDto renameProduct(TransferAuthTokenDto authToken, String shopId, String newName);
 
-    TransferShopDto setProductPrice(TransferAuthTokenDto authToken, ObjectId shopId, ProductName productName, double price);
+    TransferProductDto buyProductsFromTheStock(TransferAuthTokenDto authToken, String shopId, String productName, int productAmount, double price);
 
-    void deleteShop(TransferAuthTokenDto authToken, ObjectId shopId);
+    TransferProductDto buyExistsProductsFromTheStock(TransferAuthTokenDto authToken, String shopId, String productId, double productCost, int amount);
+
+    TransferProductDto buyProductsFromTheShop(TransferAuthTokenDto authToken, String shopId, String productName, int productAmount);
+
+    TransferProductDto setProductPrice(TransferAuthTokenDto authToken, String productId, double newPrice);
+
+    TransferProductDto setProductAmount(TransferAuthTokenDto validateAuthToken, String productId, int newAmount);
+
+    TransferProductDto deleteProductAmount(TransferAuthTokenDto validateAuthToken, String productId, int amount);
+
+    void deleteShop(TransferAuthTokenDto authToken, String shopId);
 }
