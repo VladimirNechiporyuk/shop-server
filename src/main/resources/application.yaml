@@ -4,4 +4,27 @@ server:
     context-path: /shop-server/api
 spring:
   application:
-    name: shop-server
+    name: shop
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    generate-ddl: true
+    properties.hibernate.jdbc.lob.non_contextual_creation: true
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/shop
+    username: postgres
+    password: postgres
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: shotartinovcourcemanualqa@gmail.com
+    password: Shop123!
+    test-connection: true
+    properties:
+      mail:
+        smtp:
+          auth: true
+    sender:
+      email: shop-artinov-manual-qa-no-replay@shop.ua
+      text: no-reply

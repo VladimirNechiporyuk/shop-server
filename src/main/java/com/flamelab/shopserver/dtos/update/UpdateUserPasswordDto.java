@@ -6,12 +6,12 @@ import lombok.*;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
 @NoArgsConstructor
-public class UpdateUserPasswordDto extends CommonUpdateDto{
+public class UpdateUserPasswordDto extends UpdateCommonDto {
 
-    private String email;
-    private String oldPassword;
-    private String password;
-    private String confirmPassword;
+    private String currentPassword;
+    private String newPassword;
+    private String repeatNewPassword;
 
 }

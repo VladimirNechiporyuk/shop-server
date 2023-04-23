@@ -1,132 +1,98 @@
 package com.flamelab.shopserver.services.impl;
 
-import com.flamelab.shopserver.dtos.create.external.CreateWalletDto;
-import com.flamelab.shopserver.dtos.update.UpdateWalletDto;
+import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.entities.Wallet;
-import com.flamelab.shopserver.enums.AmountActionType;
+import com.flamelab.shopserver.enums.NumberActionType;
+import com.flamelab.shopserver.enums.WalletOwnerTypes;
 import com.flamelab.shopserver.exceptions.ResourceException;
-import com.flamelab.shopserver.exceptions.WalletHasNotEnoughMoneyException;
+import com.flamelab.shopserver.mappers.WalletMapper;
+import com.flamelab.shopserver.repositories.WalletsRepository;
 import com.flamelab.shopserver.services.WalletsService;
-import com.flamelab.shopserver.utiles.DbEntityUtility;
-import com.flamelab.shopserver.utiles.MapperUtility;
-import com.flamelab.shopserver.utiles.naming.FieldNames;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
-import static com.flamelab.shopserver.utiles.naming.DbCollectionNames.WALLETS__DB_COLLECTION;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.ID__FIELD_APPELLATION;
-import static com.flamelab.shopserver.utiles.naming.FieldNames.OWNER_ID__FIELD_APPELLATION;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static com.flamelab.shopserver.enums.NumberActionType.INCREASE;
+import static com.flamelab.shopserver.enums.NumberActionType.DECREASE;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @Service
 @RequiredArgsConstructor
 public class WalletsServiceImpl implements WalletsService {
 
-    private final MapperUtility<Wallet, UpdateWalletDto> mapperFromEntityToUpdateDto;
-    private final DbEntityUtility<Wallet, CreateWalletDto, UpdateWalletDto> dbEntityUtility;
+    private final WalletsRepository walletsRepository;
+    private final WalletMapper walletMapper;
 
     @Override
-    public Wallet createEntity(CreateWalletDto createEntity) {
-        return dbEntityUtility.saveEntity(createEntity, CreateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION);
+    public Wallet createWallet(CreateWalletDto createWalletDto) {
+        // when a new wallet saves to the repository it saves with ownerId = null and ownerType = null
+        // ownerId and ownerType saves into the wallet entity in methods of creation new user and new shop
+        return walletsRepository.save(walletMapper.mapToEntity(createWalletDto));
     }
 
     @Override
-    public Wallet getEntityById(ObjectId entityId) {
-        return fetchWalletById(entityId);
-    }
-
-    @Override
-    public Wallet getEntityByCriterias(Map<FieldNames, Object> criterias) {
-        return dbEntityUtility.findOneBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
-    }
-
-    @Override
-    public List<Wallet> getAllEntitiesByCriterias(Map<FieldNames, Object> criterias) {
-        return dbEntityUtility.findAllBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
-    }
-
-    @Override
-    public Wallet getWalletByOwnerId(ObjectId ownerId) {
-        return fetchWalletBy(Map.of(OWNER_ID__FIELD_APPELLATION, ownerId));
-    }
-
-    @Override
-    public List<Wallet> getAllEntities() {
-        return dbEntityUtility.findAllByClass(Wallet.class, WALLETS__DB_COLLECTION);
-    }
-
-    @Override
-    public boolean isEntityExistsByCriterias(Map<FieldNames, Object> criterias) {
-        return dbEntityUtility.isEntityExistsBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
-    }
-
-    @Override
-    public Wallet updateWalletAmount(ObjectId walletId, AmountActionType actionType, double amount) {
-        Map<FieldNames, Object> searchCriterias = Map.of(ID__FIELD_APPELLATION, walletId);
-        Wallet wallet = fetchWalletBy(searchCriterias);
-        wallet.setAmount(changeAmount(wallet.getAmount(), actionType, amount));
-        UpdateWalletDto updateWalletDto = mapperFromEntityToUpdateDto.map(wallet, Wallet.class, UpdateWalletDto.class);
-        return dbEntityUtility.updateEntity(searchCriterias, updateWalletDto, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION);
-    }
-
-    private double changeAmount(double walletAmount, AmountActionType actionType, double amount) {
-        switch (actionType) {
-            case INCREASE -> {
-                return walletAmount + amount;
-            }
-            case DECREASE -> {
-                if (walletAmount < amount) {
-                    throw new WalletHasNotEnoughMoneyException(String.format("The wallet with id '%s' has less money amount then '%s'", walletAmount, amount));
-                }
-                return walletAmount - amount;
-            }
-            default ->
-                    throw new ResourceException(BAD_REQUEST, String.format("Wrong AmountActionType provided. Provided action type: '%s'", actionType));
+    public Wallet getWalletById(String walletId) {
+        Optional<Wallet> optionalWallet = walletsRepository.findById(walletId);
+        if (optionalWallet.isPresent()) {
+            return optionalWallet.get();
+        } else {
+            throw new ResourceException(NO_CONTENT, String.format("Wallet with id '%s' does not exists", walletId));
         }
     }
 
     @Override
-    public Wallet updateEntityById(ObjectId entityId, UpdateWalletDto dtoWithNewData) {
-        return dbEntityUtility.updateEntity(Map.of(ID__FIELD_APPELLATION, entityId), dtoWithNewData, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION);
+    public Wallet getWalletByOwnerId(String ownerId) {
+        Optional<Wallet> optionalWallet = walletsRepository.findByOwnerId(ownerId);
+        if (optionalWallet.isPresent()) {
+            return optionalWallet.get();
+        } else {
+            throw new ResourceException(NO_CONTENT, String.format("Wallet with ownerId '%s' does not exists", ownerId));
+        }
     }
 
     @Override
-    public boolean isWalletHasEnoughAmountByWalletId(ObjectId walletId, double paymentMoney) {
-        Wallet wallet = fetchWalletById(walletId);
-        return wallet.getAmount() >= paymentMoney;
+    public List<Wallet> getAllWallets() {
+        return walletsRepository.findAll();
     }
 
     @Override
-    public boolean isWalletHasEnoughAmountByOwnerId(ObjectId ownerId, double paymentMoney) {
-        Wallet wallet = fetchWalletBy(Map.of(OWNER_ID__FIELD_APPELLATION, ownerId));
-        return wallet.getAmount() >= paymentMoney;
+    public Wallet updateWalletAmount(String walletId, NumberActionType actionType, double amountDelta) {
+        Wallet wallet = getWalletById(walletId);
+        double resultAmount = wallet.getAmount();
+        if (actionType.equals(INCREASE)) {
+            resultAmount = wallet.getAmount() + amountDelta;
+        } else if (actionType.equals(DECREASE)) {
+            resultAmount = wallet.getAmount() - amountDelta;
+        }
+        wallet.setAmount(resultAmount);
+        return walletsRepository.save(wallet);
     }
 
     @Override
-    public Wallet updateEntityBy(Map<FieldNames, Object> criterias, UpdateWalletDto dtoWithNewData) {
-        return dbEntityUtility.updateEntity(criterias, dtoWithNewData, UpdateWalletDto.class, Wallet.class, WALLETS__DB_COLLECTION);
+    public Wallet setWalletOwner(String walletId, WalletOwnerTypes ownerType, String ownerId) {
+        Wallet wallet = getWalletById(walletId);
+        wallet.setOwnerType(ownerType);
+        wallet.setOwnerId(ownerId);
+        return walletsRepository.save(wallet);
     }
 
     @Override
-    public void deleteEntityById(ObjectId entityId) {
-        dbEntityUtility.deleteEntityBy(Map.of(ID__FIELD_APPELLATION, entityId), Wallet.class, WALLETS__DB_COLLECTION);
+    public Wallet setWalletAmount(String walletId, double amount) {
+        Wallet wallet = getWalletById(walletId);
+        wallet.setAmount(amount);
+        return walletsRepository.save(wallet);
     }
 
     @Override
-    public void deleteEntityByCriterias(Map<FieldNames, Object> criterias) {
-        dbEntityUtility.deleteEntityBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
+    public boolean isWalletHasEnoughAmountForPurchase(String walletId, double purchasePrice) {
+        return getWalletById(walletId).getAmount() >= purchasePrice;
     }
 
-    private Wallet fetchWalletById(ObjectId walletId) {
-        return dbEntityUtility.findOneBy(Map.of(ID__FIELD_APPELLATION, walletId), Wallet.class, WALLETS__DB_COLLECTION);
-    }
-
-    private Wallet fetchWalletBy(Map<FieldNames, Object> criterias) {
-        return dbEntityUtility.findOneBy(criterias, Wallet.class, WALLETS__DB_COLLECTION);
+    @Override
+    public void deleteWallet(String walletId) {
+        walletsRepository.deleteById(walletId);
     }
 
 }

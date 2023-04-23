@@ -1,37 +1,40 @@
 package com.flamelab.shopserver.managers;
 
-import com.flamelab.shopserver.dtos.create.external.CreateUserDto;
-import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
-import com.flamelab.shopserver.dtos.transfer.TransferUserDto;
-import com.flamelab.shopserver.dtos.transfer.TransferWalletDto;
+import com.flamelab.shopserver.dtos.create.CreateUserDto;
+import com.flamelab.shopserver.dtos.transfer.*;
+import com.flamelab.shopserver.dtos.update.RecoverPasswordDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
-import com.flamelab.shopserver.enums.ProductName;
-import com.flamelab.shopserver.utiles.naming.FieldNames;
-import org.bson.types.ObjectId;
 
 import java.util.List;
-import java.util.Map;
 
 public interface UsersManager {
 
     TransferUserDto createUser(CreateUserDto createUserDto);
 
-    TransferUserDto getUserById(TransferAuthTokenDto authToken, ObjectId userId);
+    TransferUserDto createUserAdmin(TransferAuthTokenDto authToken, CreateUserDto createUserDto);
 
-    List<TransferUserDto> getAllUsersByCriterias(TransferAuthTokenDto authToken, Map<FieldNames, Object> criterias);
+    void sendTemporaryCodeToEmail(String email);
+
+    TransferValidationResultDto verifyTempCode(TransferTemporaryCodeDto temporaryCodeDto);
+
+    TransferUserDto confirmRegistration(String userId, int tempCode);
+
+    TransferUserDto activateUser(TransferAuthTokenDto validateAuthToken, String userId);
+
+    TransferUserDto getUserById(TransferAuthTokenDto authToken, String userId);
+
+    List<TransferUserDto> getAllUsersByTextInParameters(TransferAuthTokenDto authToken, String text);
 
     List<TransferUserDto> getAllUsers(TransferAuthTokenDto authToken);
 
-    TransferWalletDto getUserWallet(TransferAuthTokenDto authToken, ObjectId userId);
+    List<TransferPurchaseOperationDto> getPurchaseHistory(TransferAuthTokenDto authToken);
 
-    TransferUserDto updateUserData(TransferAuthTokenDto authToken, ObjectId userId, UpdateUserDto updateUserDto);
+    TransferUserDto updateUserData(TransferAuthTokenDto authToken, String userId, UpdateUserDto updateUserDto);
 
-    TransferWalletDto deposit(TransferAuthTokenDto authToken, int amount);
-
-    TransferUserDto buyProducts(TransferAuthTokenDto authToken, ObjectId shopId, ProductName productName, int amount);
+    void recoverPassword(TransferAuthTokenDto authToken, RecoverPasswordDto recoverPasswordDto);
 
     void updateUserPassword(TransferAuthTokenDto authToken, UpdateUserPasswordDto updateUserPasswordDto);
 
-    void deleteUser(TransferAuthTokenDto authToken, ObjectId userId);
+    void deleteUser(TransferAuthTokenDto authToken, String userId);
 }

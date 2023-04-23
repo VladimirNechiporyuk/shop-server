@@ -1,21 +1,20 @@
 package com.flamelab.shopserver.dtos.transfer;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.flamelab.shopserver.enums.OwnerType;
-import com.flamelab.shopserver.utiles.serializers.StringJsonSerializer;
+import com.flamelab.shopserver.enums.WalletOwnerTypes;
 import lombok.*;
-import org.bson.types.ObjectId;
+
+import java.util.UUID;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
 @NoArgsConstructor
-public class TransferWalletDto extends CommonTransferDto {
+public class TransferWalletDto extends TransferCommonDto {
 
-    @JsonSerialize(using = StringJsonSerializer.class)
-    private ObjectId ownerId;
-    private OwnerType ownerType;
+    private String ownerId;
+    private WalletOwnerTypes ownerType;
     private double amount;
 
 }

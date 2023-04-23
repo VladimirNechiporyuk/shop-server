@@ -1,25 +1,24 @@
 package com.flamelab.shopserver.entities;
 
 import com.flamelab.shopserver.enums.Roles;
-import com.flamelab.shopserver.internal_data.Product;
 import lombok.*;
-import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
+
+import static com.flamelab.shopserver.enums.Roles.CUSTOMER;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class User extends CommonEntity {
+public abstract class User extends CommonEntity {
 
-    private String name;
+    private String username;
     private String email;
     private String password;
+    private String walletId;
     private Roles role;
-    private ObjectId walletId;
-    private List<Product> basket = new ArrayList<>();
+    private boolean isActive;
 
 }
