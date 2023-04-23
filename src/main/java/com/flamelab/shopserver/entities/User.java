@@ -12,7 +12,7 @@ import static com.flamelab.shopserver.enums.Roles.CUSTOMER;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public abstract class User extends CommonEntity {
+public class User extends CommonEntity {
 
     private String username;
     private String email;

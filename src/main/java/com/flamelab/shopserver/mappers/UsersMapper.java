@@ -2,9 +2,6 @@ package com.flamelab.shopserver.mappers;
 
 import com.flamelab.shopserver.dtos.create.CreateUserDto;
 import com.flamelab.shopserver.dtos.transfer.TransferUserDto;
-import com.flamelab.shopserver.entities.Admin;
-import com.flamelab.shopserver.entities.Customer;
-import com.flamelab.shopserver.entities.Merchant;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.utiles.RandomDataGenerator;
@@ -47,16 +44,7 @@ public class UsersMapper {
     }
 
     public User mapToEntity(CreateUserDto createDto) {
-        User entity;
-        if (createDto.getRole().equals(ADMIN)) {
-            entity = new Admin();
-        } else if (createDto.getRole().equals(MERCHANT)) {
-            entity = new Merchant();
-        } else if (createDto.getRole().equals(CUSTOMER)) {
-            entity = new Customer();
-        } else {
-            throw new ResourceException(BAD_REQUEST, String.format("The provided role '%s' does not exists.", createDto.getRole()));
-        }
+        User entity = new User();
         entity.setId(randomDataGenerator.generateId());
         entity.setCreatedDate(LocalDateTime.now());
         entity.setLastUpdatedDate(LocalDateTime.now());
