@@ -24,6 +24,7 @@ import java.util.List;
 
 import static com.flamelab.shopserver.enums.WalletOwnerTypes.USER;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +52,7 @@ public class UsersManagerImpl implements UsersManager {
         User user = usersService.createUser(createUserDto);
         usersService.addWalletToUser(user.getId(), wallet.getId());
         walletsService.setWalletOwner(wallet.getId(), USER, user.getId());
-//        sendRegistrationTemporaryCodeToEmail(user.getEmail(), user.getId());
+        sendRegistrationTemporaryCodeToEmail(user.getEmail(), user.getId());
         return usersMapper.mapToDto(usersService.getUserById(user.getId()));
     }
 
@@ -141,24 +142,27 @@ public class UsersManagerImpl implements UsersManager {
 
     private void sendRegistrationTemporaryCodeToEmail(String email, String userId) {
         CreateTemporaryCodeDto createTemporaryCodeDto = new CreateTemporaryCodeDto(email, randomDataGenerator.generateTemporaryCode());
+        int tempCode = temporaryCodeService.generateTemporaryCode(createTemporaryCodeDto).getTempCode();
         if (usersService.isUserExistsByEmail(email)) {
-            sendEmailService.sendEmail(
-                    email,
-                    "Registration confirmation",
-                    emailTextProvider.provideConfirmRegistrationText(
-                            userId,
-                            temporaryCodeService.generateTemporaryCode(createTemporaryCodeDto).getTempCode()));
+//            sendEmailService.sendEmail(
+//                    email,
+//                    "Registration confirmation",
+//                    emailTextProvider.provideConfirmRegistrationText(userId, tempCode));
+        } else {
+            throw new ResourceException(NO_CONTENT, String.format("User with email '%s' does not exists", email));
         }
     }
 
     private void sendPasswordRecoveryTemporaryCodeToEmail(String email) {
         CreateTemporaryCodeDto createTemporaryCodeDto = new CreateTemporaryCodeDto(email, randomDataGenerator.generateTemporaryCode());
+        int tempCode = temporaryCodeService.generateTemporaryCode(createTemporaryCodeDto).getTempCode();
         if (usersService.isUserExistsByEmail(email)) {
-            sendEmailService.sendEmail(
-                    email,
-                    "Password Recovery",
-                    emailTextProvider.providePasswordRecoverySendTempCodeText(
-                            temporaryCodeService.generateTemporaryCode(createTemporaryCodeDto).getTempCode()));
+//            sendEmailService.sendEmail(
+//                    email,
+//                    "Password Recovery",
+//                    emailTextProvider.providePasswordRecoverySendTempCodeText(tempCode));
+        } else {
+            throw new ResourceException(NO_CONTENT, String.format("User with email '%s' does not exists", email));
         }
     }
 
