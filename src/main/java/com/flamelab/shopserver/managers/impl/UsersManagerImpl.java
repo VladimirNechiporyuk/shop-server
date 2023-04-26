@@ -7,7 +7,7 @@ import com.flamelab.shopserver.dtos.transfer.*;
 import com.flamelab.shopserver.dtos.update.RecoverPasswordDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
-import com.flamelab.shopserver.entities.CommonEntity;
+import com.flamelab.shopserver.entities.Shop;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.exceptions.ResourceException;
@@ -51,7 +51,7 @@ public class UsersManagerImpl implements UsersManager {
         User user = usersService.createUser(createUserDto);
         usersService.addWalletToUser(user.getId(), wallet.getId());
         walletsService.setWalletOwner(wallet.getId(), USER, user.getId());
-        sendRegistrationTemporaryCodeToEmail(user.getEmail(), user.getId());
+//        sendRegistrationTemporaryCodeToEmail(user.getEmail(), user.getId());
         return usersMapper.mapToDto(usersService.getUserById(user.getId()));
     }
 
@@ -134,7 +134,7 @@ public class UsersManagerImpl implements UsersManager {
     @Override
     public void deleteUser(TransferAuthTokenDto authToken, String userId) {
         usersService.deleteUser(userId);
-        List<String> shopIds = shopsService.getAllShopsByOwnerId(userId).stream().map(CommonEntity::getId).toList();
+        List<String> shopIds = shopsService.getAllShopsByOwnerId(userId).stream().map(Shop::getId).toList();
         shopsService.deleteShops(shopIds);
         productsService.deleteProductsByShopIds(shopIds);
     }

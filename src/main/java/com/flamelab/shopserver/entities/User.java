@@ -1,19 +1,24 @@
 package com.flamelab.shopserver.entities;
 
 import com.flamelab.shopserver.enums.Roles;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import java.time.LocalDateTime;
 
-import static com.flamelab.shopserver.enums.Roles.CUSTOMER;
-
-@Getter
-@Setter
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@Data
+@Entity
+@Table(name = "users")
 @NoArgsConstructor
-public class User extends CommonEntity {
+public class User {
 
+    @Id
+    private String id;
+    private LocalDateTime createdDate;
+    private LocalDateTime lastUpdatedDate;
     private String username;
     private String email;
     private String password;

@@ -2,20 +2,22 @@ package com.flamelab.shopserver.entities;
 
 import com.flamelab.shopserver.enums.Roles;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 
-import java.util.UUID;
+import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@Data
 @NoArgsConstructor
 @Entity
 @Table(name = "tokens")
-public class AuthToken extends CommonEntity {
+public class AuthToken {
 
+    @Id
+    private String id;
+    private LocalDateTime createdDate;
+    private LocalDateTime lastUpdatedDate;
     private String userId;
     private String token;
     private String tokenType;

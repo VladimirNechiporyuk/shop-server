@@ -7,7 +7,6 @@ import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
 import com.flamelab.shopserver.dtos.transfer.TransferProductDto;
 import com.flamelab.shopserver.dtos.transfer.TransferShopDto;
-import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.entities.Product;
 import com.flamelab.shopserver.entities.Shop;
 import com.flamelab.shopserver.entities.Wallet;
@@ -155,7 +154,7 @@ public class ShopsManagerImpl implements ShopsManager {
     @Override
     public void deleteShop(TransferAuthTokenDto authToken, String shopId) {
         shopsService.deleteShop(shopId);
-        List<String> productsIds = productsService.getAllProductsByShopId(shopId).stream().map(CommonEntity::getId).toList();
+        List<String> productsIds = productsService.getAllProductsByShopId(shopId).stream().map(Product::getId).toList();
         productsService.deleteProducts(productsIds);
     }
 }

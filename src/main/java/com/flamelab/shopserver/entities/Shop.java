@@ -1,22 +1,23 @@
 package com.flamelab.shopserver.entities;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@Data
 @NoArgsConstructor
 @Entity
 @Table(name = "shops")
-public class Shop extends CommonEntity {
+public class Shop {
 
+    @Id
+    private String id;
+    private LocalDateTime createdDate;
+    private LocalDateTime lastUpdatedDate;
     private String name;
     private String ownerId;
     private String walletId;

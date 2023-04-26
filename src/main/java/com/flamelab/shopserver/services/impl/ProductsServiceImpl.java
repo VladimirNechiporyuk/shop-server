@@ -1,7 +1,6 @@
 package com.flamelab.shopserver.services.impl;
 
 import com.flamelab.shopserver.dtos.create.CreateProductDto;
-import com.flamelab.shopserver.entities.CommonEntity;
 import com.flamelab.shopserver.entities.Product;
 import com.flamelab.shopserver.enums.NumberActionType;
 import com.flamelab.shopserver.exceptions.ResourceException;
@@ -11,8 +10,10 @@ import com.flamelab.shopserver.services.ProductsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.flamelab.shopserver.enums.NumberActionType.DECREASE;
 import static com.flamelab.shopserver.enums.NumberActionType.INCREASE;
@@ -100,8 +101,13 @@ public class ProductsServiceImpl implements ProductsService {
 
     @Override
     public void deleteProductsByShopIds(List<String> shopIds) {
-        List<String> productIds = productsRepository.findAllByOwnerShopIds(shopIds).stream().map(CommonEntity::getId).toList();
-        deleteProducts(productIds);
+        List<List<String>> productIdsByEachShop = shopIds.stream()
+                .map(productsRepository::findAllByOwnerShopId)
+                .map(products -> products.stream().map(Product::getId).collect(Collectors.toList()))
+                .toList();
+        List<String> allProductIds = new ArrayList<>();
+        productIdsByEachShop.forEach(allProductIds::addAll);
+        deleteProducts(allProductIds);
     }
 
 }
