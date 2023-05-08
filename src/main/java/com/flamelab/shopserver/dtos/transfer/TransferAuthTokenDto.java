@@ -19,6 +19,6 @@ public class TransferAuthTokenDto extends TransferCommonDto {
     private final String token_type = BEARER.getTypeName();
     private String token;
     private String email;
-    private Roles role;
+    private String role;
 
 }

@@ -92,7 +92,7 @@ public class ShopsManagerImpl implements ShopsManager {
             Product product = productsService.createProduct(new CreateProductDto(shopId, productName, productAmount, price));
             walletsService.updateWalletAmount(shopWallet.getId(), DECREASE, finalPrice);
             purchaseOperationsService.createPurchaseOperation(
-                    new CreatePurchaseOperationDto(productName, productAmount, finalPrice, "11111111-1111-1111-1111-111111111111", "Stock", shopId, shop.getName()));
+                    new CreatePurchaseOperationDto(productName, productAmount, finalPrice, "22222222-2222-2222-2222-222222222222", "Stock", shopId, shop.getName()));
             return productMapper.mapToDto(product);
         } else {
             throw new ResourceException(BAD_REQUEST, String.format("Shop with name '%s' has not enough money for making this purchase.", shop.getName()));
@@ -109,7 +109,7 @@ public class ShopsManagerImpl implements ShopsManager {
             Product product = productsService.setProductPrice(productId, productCost);
             walletsService.updateWalletAmount(shopWallet.getId(), DECREASE, finalPrice);
             purchaseOperationsService.createPurchaseOperation(
-                    new CreatePurchaseOperationDto(product.getName(), productAmount, finalPrice, "11111111-1111-1111-1111-111111111111", "Stock", shopId, shop.getName()));
+                    new CreatePurchaseOperationDto(product.getName(), productAmount, finalPrice, "22222222-2222-2222-2222-222222222222", "Stock", shopId, shop.getName()));
             return productMapper.mapToDto(product);
         } else {
             throw new ResourceException(BAD_REQUEST, String.format("Shop with name '%s' has not enough money for making this purchase.", shop.getName()));

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.flamelab.shopserver.enums.AuthTokenType.BEARER;
@@ -39,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
             Optional<AuthToken> optionalAuthToken = authorizationRepository.findByToken(token);
             if (optionalAuthToken.isPresent()) {
                 AuthToken tokenFromDb = optionalAuthToken.get();
-                validateRoles(tokenFromDb, availableRoles);
+                validateRoles(tokenFromDb, availableRoles.stream().map(Objects::toString).toList());
                 validateIsTokenExpire(tokenFromDb);
                 increaseTokenUsageAmount(tokenFromDb);
                 return tokenFromDb;
@@ -49,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private void validateRoles(AuthToken tokenFromDb, List<Roles> availableRoles) {
+    private void validateRoles(AuthToken tokenFromDb, List<String> availableRoles) {
         if (!availableRoles.contains(tokenFromDb.getRole())) {
             throw new ResourceException(UNAUTHORIZED, "User not available for using this API");
         }

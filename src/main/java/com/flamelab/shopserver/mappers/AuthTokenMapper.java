@@ -47,7 +47,7 @@ public class AuthTokenMapper {
         entity.setToken(randomDataGenerator.generateAuthToken());
         entity.setTokenType(BEARER.getTypeName());
         entity.setEmail(user.getEmail());
-        entity.setRole(Roles.valueOf(user.getRole()));
+        entity.setRole(user.getRole());
         entity.setUsageAmount(0);
         return entity;
     }

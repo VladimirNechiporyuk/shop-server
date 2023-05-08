@@ -1,10 +1,10 @@
 package com.flamelab.shopserver.entities;
 
-import com.flamelab.shopserver.enums.Roles;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -22,7 +22,7 @@ public class AuthToken {
     private String token;
     private String tokenType;
     private String email;
-    private Roles role;
+    private String role;
     private int usageAmount;
 
 }
