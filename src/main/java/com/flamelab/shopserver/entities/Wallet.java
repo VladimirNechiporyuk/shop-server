@@ -1,6 +1,5 @@
 package com.flamelab.shopserver.entities;
 
-import com.flamelab.shopserver.enums.WalletOwnerTypes;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -20,7 +19,8 @@ public class Wallet {
     private LocalDateTime createdDate;
     private LocalDateTime lastUpdatedDate;
     private String ownerId;
-    private WalletOwnerTypes ownerType;
+    private String ownerType;
+    private String ownerName;
     private double amount;
 
 }

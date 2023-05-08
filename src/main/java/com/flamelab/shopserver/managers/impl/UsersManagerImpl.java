@@ -3,7 +3,10 @@ package com.flamelab.shopserver.managers.impl;
 import com.flamelab.shopserver.dtos.create.CreateTemporaryCodeDto;
 import com.flamelab.shopserver.dtos.create.CreateUserDto;
 import com.flamelab.shopserver.dtos.create.CreateWalletDto;
-import com.flamelab.shopserver.dtos.transfer.*;
+import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
+import com.flamelab.shopserver.dtos.transfer.TransferTemporaryCodeDto;
+import com.flamelab.shopserver.dtos.transfer.TransferUserDto;
+import com.flamelab.shopserver.dtos.transfer.TransferValidationResultDto;
 import com.flamelab.shopserver.dtos.update.RecoverPasswordDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
@@ -22,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.flamelab.shopserver.enums.Roles.ADMIN;
+import static com.flamelab.shopserver.enums.Roles.MERCHANT;
 import static com.flamelab.shopserver.enums.WalletOwnerTypes.USER;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -34,7 +39,7 @@ public class UsersManagerImpl implements UsersManager {
     private final WalletsService walletsService;
     private final ShopsService shopsService;
     private final ProductsService productsService;
-    private final PurchaseOperationService purchaseOperationService;
+    private final PurchaseOperationsService purchaseOperationsService;
     private final UsersMapper usersMapper;
     private final PurchaseOperationMapper purchaseOperationMapper;
     private final SendEmailService sendEmailService;
@@ -51,7 +56,7 @@ public class UsersManagerImpl implements UsersManager {
         Wallet wallet = walletsService.createWallet(new CreateWalletDto(START_USER_MONEY));
         User user = usersService.createUser(createUserDto);
         usersService.addWalletToUser(user.getId(), wallet.getId());
-        walletsService.setWalletOwner(wallet.getId(), USER, user.getId());
+        walletsService.setWalletOwner(wallet.getId(), USER, user.getId(), user.getUsername());
         sendRegistrationTemporaryCodeToEmail(user.getEmail(), user.getId());
         return usersMapper.mapToDto(usersService.getUserById(user.getId()));
     }
@@ -67,9 +72,11 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public TransferValidationResultDto verifyTempCode(TransferTemporaryCodeDto tempCode) {
-        if (temporaryCodeService.validateTempCode(tempCode.getTempCode())) {
-            return new TransferValidationResultDto(true);
+    public TransferValidationResultDto verifyTempCode(TransferTemporaryCodeDto tempCodeDto) {
+        if (temporaryCodeService.validateTempCode(tempCodeDto.getTempCode())) {
+            TransferValidationResultDto tempCodeValidationResult = new TransferValidationResultDto(true);
+            temporaryCodeService.deleteTemporaryCode(tempCodeDto.getTempCode());
+            return tempCodeValidationResult;
         } else {
             throw new ResourceException(BAD_REQUEST, "Entered temporary code is not correct");
         }
@@ -78,7 +85,9 @@ public class UsersManagerImpl implements UsersManager {
     @Override
     public TransferUserDto confirmRegistration(String userId, int tempCode) {
         verifyTempCode(new TransferTemporaryCodeDto(tempCode));
-        return usersMapper.mapToDto(usersService.activateUser(userId));
+        TransferUserDto userDto = usersMapper.mapToDto(usersService.activateUser(userId));
+        temporaryCodeService.deleteTemporaryCode(tempCode);
+        return userDto;
     }
 
     @Override
@@ -107,6 +116,16 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
+    public void recoverPassword(RecoverPasswordDto recoverPasswordDto) {
+        User user = usersService.getUserByEmail(recoverPasswordDto.getEmail());
+        if (recoverPasswordDto.getNewPassword().equals(recoverPasswordDto.getRepeatNewPassword())) {
+            usersService.recoverPassword(user.getId(), recoverPasswordDto.getNewPassword());
+        } else {
+            throw new ResourceException(BAD_REQUEST, "Passwords are not equals");
+        }
+    }
+
+    @Override
     public void recoverPassword(TransferAuthTokenDto authToken, RecoverPasswordDto recoverPasswordDto) {
         if (recoverPasswordDto.getNewPassword().equals(recoverPasswordDto.getRepeatNewPassword())) {
             usersService.recoverPassword(authToken.getUserId(), recoverPasswordDto.getNewPassword());
@@ -128,16 +147,17 @@ public class UsersManagerImpl implements UsersManager {
     }
 
     @Override
-    public List<TransferPurchaseOperationDto> getPurchaseHistory(TransferAuthTokenDto authToken) {
-        return purchaseOperationMapper.mapToDtoList(purchaseOperationService.getAllPurchaseOperationsByUser(authToken.getUserId()));
-    }
-
-    @Override
     public void deleteUser(TransferAuthTokenDto authToken, String userId) {
         usersService.deleteUser(userId);
-        List<String> shopIds = shopsService.getAllShopsByOwnerId(userId).stream().map(Shop::getId).toList();
-        shopsService.deleteShops(shopIds);
-        productsService.deleteProductsByShopIds(shopIds);
+        if (authToken.getRole().equals(MERCHANT)) {
+            List<String> shopIds = shopsService.getAllShopsByOwnerId(userId).stream().map(Shop::getId).toList();
+            shopsService.deleteShops(shopIds);
+            productsService.deleteProductsByShopIds(shopIds);
+        }
+        if (!authToken.getRole().equals(ADMIN)) {
+            Wallet userWallet = walletsService.getWalletByOwnerId(userId);
+            walletsService.deleteWallet(userWallet.getId());
+        }
     }
 
     private void sendRegistrationTemporaryCodeToEmail(String email, String userId) {

@@ -20,14 +20,14 @@ public class AuthController {
     private final AuthManager authManager;
 
     @PostMapping("/login")
-    public ResponseEntity<TransferAuthTokenDto> loginUser(@RequestBody CreateAuthTokenDto createUserAuthToken) {
+    public ResponseEntity<?> loginUser(@RequestBody CreateAuthTokenDto createUserAuthToken) {
         return ResponseEntity
                 .status(OK)
                 .body(authManager.login(createUserAuthToken));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<TransferAuthTokenDto> logoutUser(@RequestHeader String authorization) {
+    public ResponseEntity<?> logoutUser(@RequestHeader String authorization) {
         authManager.logout(authManager.validateAuthToken(authorization, List.of(Roles.values())));
         return ResponseEntity
                 .status(OK)

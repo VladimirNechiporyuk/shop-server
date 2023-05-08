@@ -17,5 +17,6 @@ public class TransferUserDto extends TransferCommonDto {
     private String email;
     private String walletId;
     private Roles role;
+    private boolean isActive;
 
 }

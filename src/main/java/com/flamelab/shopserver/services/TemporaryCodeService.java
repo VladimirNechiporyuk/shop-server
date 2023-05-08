@@ -13,4 +13,5 @@ public interface TemporaryCodeService {
 
     boolean validateTempCode(int tempCode);
 
+    void deleteTemporaryCode(int tempCode);
 }

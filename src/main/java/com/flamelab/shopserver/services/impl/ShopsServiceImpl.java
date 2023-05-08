@@ -37,6 +37,16 @@ public class ShopsServiceImpl implements ShopsService {
     }
 
     @Override
+    public Shop getShopByName(String shopName) {
+        Optional<Shop> optionalShop = shopsRepository.findByName(shopName);
+        if (optionalShop.isPresent()) {
+            return optionalShop.get();
+        } else {
+            throw new ResourceException(NO_CONTENT, String.format("Shop with name '%s' does not exists.", shopName));
+        }
+    }
+
+    @Override
     public List<Shop> getAllShops() {
         return shopsRepository.findAll();
     }
@@ -57,6 +67,18 @@ public class ShopsServiceImpl implements ShopsService {
         shop.setName(newName);
         return shopsRepository.save(shop);
     }
+
+    @Override
+    public boolean isUserOwnerOfShop(String userId, String shopId) {
+        Shop shop = getShopById(shopId);
+        return shop.getOwnerId().equals(userId);
+    }
+
+    @Override
+    public boolean isShopExistsWithName(String shopName) {
+        return shopsRepository.existsByName(shopName);
+    }
+
 
     @Override
     public void deleteShop(String shopId) {

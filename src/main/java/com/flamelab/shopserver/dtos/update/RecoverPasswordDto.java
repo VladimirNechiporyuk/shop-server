@@ -10,6 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 public class RecoverPasswordDto extends UpdateCommonDto{
 
+    private String email;
     private String newPassword;
     private String repeatNewPassword;
 

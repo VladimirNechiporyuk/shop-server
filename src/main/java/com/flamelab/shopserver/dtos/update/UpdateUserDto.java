@@ -7,7 +7,6 @@ import lombok.*;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-@NoArgsConstructor
 public class UpdateUserDto extends UpdateCommonDto {
 
     private String username;

@@ -26,7 +26,9 @@ public class PurchaseOperationMapper {
         dto.setAmount(entity.getAmount());
         dto.setPrice(entity.getPrice());
         dto.setCustomerId(entity.getCustomerId());
+        dto.setCustomerName(entity.getCustomerName());
         dto.setMerchantId(entity.getMerchantId());
+        dto.setMerchantName(entity.getMerchantName());
         return dto;
     }
 
@@ -45,7 +47,9 @@ public class PurchaseOperationMapper {
         entity.setAmount(createDto.getAmount());
         entity.setPrice(createDto.getPrice());
         entity.setCustomerId(createDto.getCustomerId());
+        entity.setCustomerName(createDto.getCustomerName());
         entity.setMerchantId(createDto.getMerchantId());
+        entity.setMerchantName(createDto.getMerchantName());
         return entity;
     }
 }

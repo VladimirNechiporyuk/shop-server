@@ -3,6 +3,7 @@ package com.flamelab.shopserver.mappers;
 import com.flamelab.shopserver.dtos.create.CreateUserDto;
 import com.flamelab.shopserver.dtos.transfer.TransferUserDto;
 import com.flamelab.shopserver.entities.User;
+import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.utiles.RandomDataGenerator;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +29,13 @@ public class UsersMapper {
         dto.setLastUpdatedDate(entity.getLastUpdatedDate());
         dto.setUsername(entity.getUsername());
         dto.setEmail(entity.getEmail());
-        if (entity.getRole().equals(ADMIN)) {
+        if (entity.getRole().equals(ADMIN.name())) {
             dto.setWalletId(null);
         } else {
             dto.setWalletId(entity.getWalletId());
         }
-        dto.setRole(entity.getRole());
+        dto.setRole(Roles.valueOf(entity.getRole()));
+        dto.setActive(entity.isActive());
         return dto;
     }
 
@@ -51,7 +53,7 @@ public class UsersMapper {
         entity.setUsername(createDto.getName());
         entity.setPassword(createDto.getPassword());
         entity.setEmail(createDto.getEmail());
-        entity.setRole(createDto.getRole());
+        entity.setRole(createDto.getRole().name());
         entity.setActive(false);
         return entity;
     }

@@ -3,6 +3,7 @@ package com.flamelab.shopserver.mappers;
 import com.flamelab.shopserver.dtos.create.CreateWalletDto;
 import com.flamelab.shopserver.dtos.transfer.TransferWalletDto;
 import com.flamelab.shopserver.entities.Wallet;
+import com.flamelab.shopserver.enums.WalletOwnerTypes;
 import com.flamelab.shopserver.utiles.RandomDataGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -23,8 +24,9 @@ public class WalletMapper {
         dto.setCreatedDate(entity.getCreatedDate());
         dto.setLastUpdatedDate(entity.getLastUpdatedDate());
         dto.setOwnerId(entity.getOwnerId());
-        dto.setOwnerType(entity.getOwnerType());
+        dto.setOwnerType(WalletOwnerTypes.valueOf(entity.getOwnerType()));
         dto.setAmount(entity.getAmount());
+        dto.setOwnerName(entity.getOwnerName());
         return dto;
     }
 

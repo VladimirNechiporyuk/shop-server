@@ -5,9 +5,9 @@ import com.flamelab.shopserver.entities.PurchaseOperation;
 
 import java.util.List;
 
-public interface PurchaseOperationService {
+public interface PurchaseOperationsService {
 
-    PurchaseOperation createPurchaseOperation(CreatePurchaseOperationDto createPurchaseOperationDto);
+    void createPurchaseOperation(CreatePurchaseOperationDto createPurchaseOperationDto);
 
     PurchaseOperation getPurchaseOperationById(String operationId);
 

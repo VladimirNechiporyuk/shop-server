@@ -71,13 +71,16 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public User updateUserData(String userId, UpdateUserDto updateUserDto) {
         User userFromDb = getUserById(userId);
-        if (updateUserDto.getEmail() != null && !updateUserDto.getEmail().isEmpty()) {
-            userFromDb.setEmail(updateUserDto.getEmail());
-        }
-        if (updateUserDto.getUsername() != null && !updateUserDto.getUsername().isEmpty()) {
+        boolean isDataChanged = false;
+        if (updateUserDto.getUsername() != null && !updateUserDto.getUsername().isEmpty() && !userFromDb.getUsername().equals(updateUserDto.getUsername())) {
             userFromDb.setUsername(updateUserDto.getUsername());
+            isDataChanged = true;
         }
-        if (!userFromDb.getEmail().equals(updateUserDto.getEmail()) || !userFromDb.getUsername().equals(updateUserDto.getUsername())) {
+        if (updateUserDto.getEmail() != null &&!updateUserDto.getEmail().isEmpty() && !userFromDb.getEmail().equals(updateUserDto.getEmail())) {
+            userFromDb.setEmail(updateUserDto.getEmail());
+            isDataChanged = true;
+        }
+        if (isDataChanged) {
             usersRepository.save(userFromDb);
         }
         return userFromDb;

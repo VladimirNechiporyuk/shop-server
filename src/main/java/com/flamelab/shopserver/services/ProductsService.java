@@ -16,8 +16,6 @@ public interface ProductsService {
 
     List<Product> getAllProductsByShopId(String shopId);
 
-    Product getProductByShopAndName(String shopId, String shopName, String productName);
-
     boolean isEnoughAmountOfProducts(String productId, int requestedAmount);
 
     Product setProductPrice(String productId, double newPrice);

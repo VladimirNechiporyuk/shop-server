@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "orders")
+@Table(name = "purchase_history")
 public class PurchaseOperation {
 
     @Id
@@ -25,6 +25,8 @@ public class PurchaseOperation {
     // the customerId = shopId
     // merchantId = id of the stock - hardcoded value in the DB
     private String merchantId;
+    private String merchantName;
     private String customerId;
+    private String customerName;
 
 }

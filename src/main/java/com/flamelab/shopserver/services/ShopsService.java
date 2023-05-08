@@ -1,7 +1,6 @@
 package com.flamelab.shopserver.services;
 
 import com.flamelab.shopserver.dtos.create.CreateShopDto;
-import com.flamelab.shopserver.entities.Product;
 import com.flamelab.shopserver.entities.Shop;
 
 import java.util.List;
@@ -12,6 +11,8 @@ public interface ShopsService {
 
     Shop getShopById(String shopId);
 
+    Shop getShopByName(String shopName);
+
     List<Shop> getAllShops();
 
     List<Shop> getAllShopsByOwnerId(String ownerId);
@@ -19,6 +20,10 @@ public interface ShopsService {
     List<Shop> getAllShopsByTextInName(String text);
 
     Shop renameShop(String shopId, String newName);
+
+    boolean isUserOwnerOfShop(String userId, String shopId);
+
+    boolean isShopExistsWithName(String shopName);
 
     void deleteShop(String shopId);
 

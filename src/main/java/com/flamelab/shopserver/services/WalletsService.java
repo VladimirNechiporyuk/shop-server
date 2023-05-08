@@ -19,9 +19,7 @@ public interface WalletsService {
 
     Wallet updateWalletAmount(String walletId, NumberActionType actionType, double amount);
 
-    Wallet setWalletOwner(String walletId, WalletOwnerTypes ownerType, String ownerId);
-
-    Wallet setWalletAmount(String walletId, double amount);
+    void setWalletOwner(String walletId, WalletOwnerTypes ownerType, String ownerId, String ownerName);
 
     boolean isWalletHasEnoughAmountForPurchase(String walletId, double purchasePrice);
 

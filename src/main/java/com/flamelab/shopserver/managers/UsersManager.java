@@ -28,9 +28,9 @@ public interface UsersManager {
 
     List<TransferUserDto> getAllUsers(TransferAuthTokenDto authToken);
 
-    List<TransferPurchaseOperationDto> getPurchaseHistory(TransferAuthTokenDto authToken);
-
     TransferUserDto updateUserData(TransferAuthTokenDto authToken, String userId, UpdateUserDto updateUserDto);
+
+    void recoverPassword(RecoverPasswordDto recoverPasswordDto);
 
     void recoverPassword(TransferAuthTokenDto authToken, RecoverPasswordDto recoverPasswordDto);
 

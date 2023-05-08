@@ -2,6 +2,7 @@ package com.flamelab.shopserver.managers.impl;
 
 import com.flamelab.shopserver.dtos.create.CreateAuthTokenDto;
 import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
+import com.flamelab.shopserver.entities.AuthToken;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.exceptions.ResourceException;
@@ -10,12 +11,13 @@ import com.flamelab.shopserver.mappers.AuthTokenMapper;
 import com.flamelab.shopserver.services.AuthService;
 import com.flamelab.shopserver.services.UsersService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.flamelab.shopserver.enums.AuthTokenType.BEARER;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +34,10 @@ public class AuthManagerImpl implements AuthManager {
         User user = userService.getUserByEmail(createAuthTokenDto.getEmail());
         if (user != null) {
             if (user.getPassword().equals(createAuthTokenDto.getPassword())) {
-                if (authService.isTokenExists(createAuthTokenDto.getEmail())) {
-                    authService.deleteTokenByEmail(createAuthTokenDto.getEmail());
+                validateIsUserActive(user);
+                if (authService.isTokenExistsByEmail(createAuthTokenDto.getEmail())) {
+                    AuthToken token = authService.getTokenByEmail(createAuthTokenDto.getEmail());
+                    authService.deleteTokenByTokenId(token.getId());
                 }
                 return authTokenMapper.mapToDto(authService.createToken(user));
             } else {
@@ -45,9 +49,15 @@ public class AuthManagerImpl implements AuthManager {
         }
     }
 
+    private void validateIsUserActive(User user) {
+        if (!user.isActive()) {
+            throw new ResourceException(UNPROCESSABLE_ENTITY, "User is not active. Please activate it via link in your email.");
+        }
+    }
+
     @Override
     public void logout(TransferAuthTokenDto authToken) {
-        authService.deleteTokenByValue(authToken.getToken());
+        authService.deleteTokenByTokenId(authToken.getId());
     }
 
     @Override

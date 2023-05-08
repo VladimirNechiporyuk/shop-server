@@ -13,6 +13,8 @@ public class CreatePurchaseOperationDto extends CreateCommonDto {
     private Integer amount;
     private Double price;
     private String merchantId;
+    private String merchantName;
     private String customerId;
+    private String customerName;
 
 }

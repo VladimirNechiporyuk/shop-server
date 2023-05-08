@@ -15,6 +15,7 @@ public class TransferWalletDto extends TransferCommonDto {
 
     private String ownerId;
     private WalletOwnerTypes ownerType;
+    private String ownerName;
     private double amount;
 
 }

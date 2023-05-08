@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.flamelab.shopserver.enums.AuthTokenType.BEARER;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Service
@@ -22,6 +23,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthorizationRepository authorizationRepository;
     private final AuthTokenMapper authTokenMapper;
+    private final int maxUsageAmount = 10;
 
     @Override
     public AuthToken createToken(User user) {
@@ -36,11 +38,27 @@ public class AuthServiceImpl implements AuthService {
             token = token.replace(BEARER.getTypeName() + " ", "");
             Optional<AuthToken> optionalAuthToken = authorizationRepository.findByToken(token);
             if (optionalAuthToken.isPresent()) {
-                increaseTokenUsageAmount(optionalAuthToken.get());
-                return optionalAuthToken.get();
+                AuthToken tokenFromDb = optionalAuthToken.get();
+                validateRoles(tokenFromDb, availableRoles);
+                validateIsTokenExpire(tokenFromDb);
+                increaseTokenUsageAmount(tokenFromDb);
+                return tokenFromDb;
             } else {
                 throw new ResourceException(UNAUTHORIZED, "UNAUTHORIZED");
             }
+        }
+    }
+
+    private void validateRoles(AuthToken tokenFromDb, List<Roles> availableRoles) {
+        if (!availableRoles.contains(tokenFromDb.getRole())) {
+            throw new ResourceException(UNAUTHORIZED, "User not available for using this API");
+        }
+    }
+
+    private void validateIsTokenExpire(AuthToken token) {
+        if (token.getUsageAmount() >= maxUsageAmount) {
+            deleteTokenByTokenId(token.getId());
+            throw new ResourceException(BAD_REQUEST, "Token is expired");
         }
     }
 
@@ -50,17 +68,23 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean isTokenExists(String email) {
-        return authorizationRepository.existsByEmail(email);
+    public AuthToken getTokenByEmail(String email) {
+        Optional<AuthToken> optionalToken = authorizationRepository.findByEmail(email);
+        if (optionalToken.isPresent()) {
+            return optionalToken.get();
+        } else {
+            throw new ResourceException(UNAUTHORIZED, "UNAUTHORIZED");
+        }
     }
 
     @Override
-    public void deleteTokenByValue(String token) {
-        authorizationRepository.deleteByToken(token);
+    public boolean isTokenExistsByEmail(String email) {
+        return authorizationRepository.findByEmail(email).isPresent();
     }
 
     @Override
-    public void deleteTokenByEmail(String email) {
-        authorizationRepository.deleteByEmail(email);
+    public void deleteTokenByTokenId(String tokenId) {
+        authorizationRepository.deleteById(tokenId);
     }
+
 }

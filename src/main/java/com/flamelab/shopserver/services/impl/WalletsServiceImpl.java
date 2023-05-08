@@ -14,8 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-import static com.flamelab.shopserver.enums.NumberActionType.INCREASE;
-import static com.flamelab.shopserver.enums.NumberActionType.DECREASE;
+import static com.flamelab.shopserver.enums.NumberActionType.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @Service
@@ -58,31 +57,27 @@ public class WalletsServiceImpl implements WalletsService {
     }
 
     @Override
-    public Wallet updateWalletAmount(String walletId, NumberActionType actionType, double amountDelta) {
+    public Wallet updateWalletAmount(String walletId, NumberActionType actionType, double newAmount) {
         Wallet wallet = getWalletById(walletId);
         double resultAmount = wallet.getAmount();
-        if (actionType.equals(INCREASE)) {
-            resultAmount = wallet.getAmount() + amountDelta;
+        if (actionType.equals(CHANGE)) {
+            resultAmount = newAmount;
+        } else if (actionType.equals(INCREASE)) {
+            resultAmount = wallet.getAmount() + newAmount;
         } else if (actionType.equals(DECREASE)) {
-            resultAmount = wallet.getAmount() - amountDelta;
+            resultAmount = wallet.getAmount() - newAmount;
         }
         wallet.setAmount(resultAmount);
         return walletsRepository.save(wallet);
     }
 
     @Override
-    public Wallet setWalletOwner(String walletId, WalletOwnerTypes ownerType, String ownerId) {
+    public void setWalletOwner(String walletId, WalletOwnerTypes ownerType, String ownerId, String ownerName) {
         Wallet wallet = getWalletById(walletId);
-        wallet.setOwnerType(ownerType);
+        wallet.setOwnerType(ownerType.name());
         wallet.setOwnerId(ownerId);
-        return walletsRepository.save(wallet);
-    }
-
-    @Override
-    public Wallet setWalletAmount(String walletId, double amount) {
-        Wallet wallet = getWalletById(walletId);
-        wallet.setAmount(amount);
-        return walletsRepository.save(wallet);
+        wallet.setOwnerName(ownerName);
+        walletsRepository.save(wallet);
     }
 
     @Override

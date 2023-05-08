@@ -30,15 +30,6 @@ public class WalletsController {
                         walletId));
     }
 
-    @GetMapping("/byOwnerId")
-    public ResponseEntity<?> getWalletByOwnerId(@RequestHeader("Authorization") String authorization, @PathVariable("id") String ownerId) {
-        return ResponseEntity
-                .status(OK)
-                .body(walletsManager.getWalletByOwnerId(
-                        authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER_MERCHANT()),
-                                ownerId));
-    }
-
     @GetMapping
     public ResponseEntity<?> getAllWallets(@RequestHeader("Authorization") String authorization) {
         return ResponseEntity
@@ -65,7 +56,7 @@ public class WalletsController {
     }
 
     @PutMapping("/withdraw/user")
-    public ResponseEntity<?> doWithdrawFromShopsWallet(@RequestHeader("Authorization") String authorization, @RequestBody CreateUserWithdrawData createWalletDepositData) {
+    public ResponseEntity<?> doWithdrawFromUserWallet(@RequestHeader("Authorization") String authorization, @RequestBody CreateUserWithdrawData createWalletDepositData) {
         return ResponseEntity
                 .status(OK)
                 .body(walletsManager.doWithdrawFromUsersWallet
@@ -74,7 +65,7 @@ public class WalletsController {
     }
 
     @PutMapping("/withdraw/shop")
-    public ResponseEntity<?> doWithdrawFromUserWallet(@RequestHeader("Authorization") String authorization, @RequestBody CreateShopWithdrawData createShopWithdrawData) {
+    public ResponseEntity<?> doWithdrawFromShopWallet(@RequestHeader("Authorization") String authorization, @RequestBody CreateShopWithdrawData createShopWithdrawData) {
         return ResponseEntity
                 .status(OK)
                 .body(walletsManager.doWithdrawFromShopsWallet(
@@ -82,8 +73,8 @@ public class WalletsController {
                         createShopWithdrawData));
     }
 
-    @PutMapping("/changeWalletAmount/{walletId}")
-    public ResponseEntity<?> changeWalletAmountByAdmin(@RequestHeader("Authorization") String authorization, @RequestParam String walletId, @RequestParam double newAmount) {
+    @PutMapping("/changeAmount/{walletId}")
+    public ResponseEntity<?> changeWalletAmountByAdmin(@RequestHeader("Authorization") String authorization, @PathVariable String walletId, @RequestParam double newAmount) {
         return ResponseEntity
                 .status(OK)
                 .body(walletsManager.changeSelectedWalletAmount(

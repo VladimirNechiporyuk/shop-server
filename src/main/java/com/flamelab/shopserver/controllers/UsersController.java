@@ -1,9 +1,7 @@
 package com.flamelab.shopserver.controllers;
 
-import com.flamelab.shopserver.dtos.create.CreateTemporaryCodeDto;
 import com.flamelab.shopserver.dtos.create.CreateUserDto;
 import com.flamelab.shopserver.dtos.transfer.TransferTemporaryCodeDto;
-import com.flamelab.shopserver.dtos.transfer.TransferUserDto;
 import com.flamelab.shopserver.dtos.update.RecoverPasswordDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserDto;
 import com.flamelab.shopserver.dtos.update.UpdateUserPasswordDto;
@@ -28,9 +26,9 @@ public class UsersController {
     private final UsersManager usersManager;
 
     @PostMapping
-    public ResponseEntity<TransferUserDto> createUser(@RequestBody CreateUserDto createUserDto) {
+    public ResponseEntity<?> createUser(@RequestBody CreateUserDto createUserDto) {
         if (createUserDto.getRole().equals(ADMIN)) {
-            throw new ResourceException(UNAUTHORIZED, "Can't create ADMIN user by this api.");
+            throw new ResourceException(UNAUTHORIZED, "Can't create ADMIN user by this API.");
         }
         return ResponseEntity
                 .status(CREATED)
@@ -38,7 +36,10 @@ public class UsersController {
     }
 
     @PostMapping("/admin")
-    public ResponseEntity<TransferUserDto> createAdmin(@RequestHeader("Authorization") String authorization, @RequestBody CreateUserDto createUserDto) {
+    public ResponseEntity<?> createAdmin(@RequestHeader("Authorization") String authorization, @RequestBody CreateUserDto createUserDto) {
+        if (!createUserDto.getRole().equals(ADMIN)) {
+            throw new ResourceException(BAD_REQUEST, "Please create only ADMIN users via this API.");
+        }
         return ResponseEntity
                 .status(CREATED)
                 .body(usersManager.createUserAdmin(
@@ -53,6 +54,15 @@ public class UsersController {
                 .body(usersManager.confirmRegistration(userId, tempCode));
     }
 
+    @GetMapping("/activateUser/{userId}")
+    public ResponseEntity<?> activateUser(@RequestHeader("Authorization") String authorization, @PathVariable("userId") String userId) {
+        return ResponseEntity
+                .status(OK)
+                .body(usersManager.activateUser(
+                        authManager.validateAuthToken(authorization, ADMIN()),
+                        userId));
+    }
+
     @PostMapping("/passwordRecovery/tempCode")
     public ResponseEntity<?> sendTemporaryCode(@RequestParam String email) {
         usersManager.sendTemporaryCodeToEmail(email);
@@ -61,13 +71,20 @@ public class UsersController {
                 .build();
     }
 
-    @GetMapping("/activateUser/{userId}")
-    public ResponseEntity<?> activateUser(@RequestHeader("Authorization") String authorization, @PathVariable("userId") String userId) {
+    @PutMapping("/passwordRecovery/tempCode/verify")
+    public ResponseEntity<?> verifyTemporaryCode(@RequestBody TransferTemporaryCodeDto temporaryCodeDto) {
+        usersManager.verifyTempCode(temporaryCodeDto);
         return ResponseEntity
                 .status(OK)
-                .body(usersManager.activateUser(
-                        authManager.validateAuthToken(authorization, ADMIN()),
-                        userId));
+                .build();
+    }
+
+    @PutMapping("/passwordRecovery/updatePassword")
+    public ResponseEntity<?> recoverPassword(@RequestBody RecoverPasswordDto recoverPasswordDto) {
+        usersManager.recoverPassword(recoverPasswordDto);
+        return ResponseEntity
+                .status(OK)
+                .build();
     }
 
     @GetMapping("/{userId}")
@@ -95,44 +112,23 @@ public class UsersController {
                         text));
     }
 
-    @GetMapping("/purchaseHistory")
-    public ResponseEntity<?> getPurchaseHistory(@RequestHeader("Authorization") String authorization) {
-        return ResponseEntity
-                .status(OK)
-                .body(usersManager.getPurchaseHistory(authManager.validateAuthToken(authorization, Roles.ADMIN())));
-    }
-
     @PutMapping("/{userId}")
     public ResponseEntity<?> updateUserData(@RequestHeader("Authorization") String authorization, @PathVariable("userId") String userId, @RequestBody UpdateUserDto updateUserDto) {
         return ResponseEntity
                 .status(OK)
                 .body(usersManager.updateUserData(
-                        authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER()),
+                        authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER_MERCHANT()),
                         userId, updateUserDto));
-    }
-
-    @PutMapping("/passwordRecovery/tempCode/verify")
-    public ResponseEntity<?> verifyTemporaryCode(@RequestBody TransferTemporaryCodeDto temporaryCodeDto) {
-        usersManager.verifyTempCode(temporaryCodeDto);
-        return ResponseEntity
-                .status(OK)
-                .build();
-    }
-
-    @PutMapping("/passwordRecovery/updatePassword")
-    public ResponseEntity<?> recoverPassword(@RequestHeader("Authorization") String authorization, @RequestBody RecoverPasswordDto recoverPasswordDto) {
-        usersManager.recoverPassword(
-                authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER()),
-                recoverPasswordDto);
-        return ResponseEntity.status(OK).build();
     }
 
     @PutMapping("/updatePassword")
     public ResponseEntity<?> updatePassword(@RequestHeader("Authorization") String authorization, @RequestBody UpdateUserPasswordDto updateUserPasswordDto) {
         usersManager.updateUserPassword(
-                authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER()),
+                authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER_MERCHANT()),
                 updateUserPasswordDto);
-        return ResponseEntity.status(OK).build();
+        return ResponseEntity
+                .status(OK)
+                .build();
     }
 
     @DeleteMapping("/{userId}")

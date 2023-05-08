@@ -16,6 +16,8 @@ public class TransferPurchaseOperationDto extends TransferCommonDto{
     private int amount;
     private double price;
     private String merchantId;
+    private String merchantName;
     private String customerId;
+    private String customerName;
 
 }

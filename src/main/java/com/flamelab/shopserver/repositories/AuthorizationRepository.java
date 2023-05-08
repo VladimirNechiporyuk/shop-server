@@ -19,10 +19,4 @@ public interface AuthorizationRepository extends JpaRepository<AuthToken, String
 
     Optional<AuthToken> findByEmail(String email);
 
-    boolean existsByEmail(String email);
-
-    void deleteByEmail(String email);
-
-    void deleteByToken(String token);
-
 }

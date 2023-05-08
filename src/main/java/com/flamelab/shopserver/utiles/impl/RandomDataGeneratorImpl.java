@@ -18,7 +18,7 @@ public class RandomDataGeneratorImpl implements RandomDataGenerator {
     public String generateAuthToken() {
         int leftLimit = 48; // numeral '0'
         int rightLimit = 122; // letter 'z'
-        int authTokenLength = 300;
+        int authTokenLength = 200;
         Random random = new Random();
         return random.ints(leftLimit, rightLimit + 1)
                 .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))

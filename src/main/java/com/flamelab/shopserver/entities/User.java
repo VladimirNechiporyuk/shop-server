@@ -1,6 +1,5 @@
 package com.flamelab.shopserver.entities;
 
-import com.flamelab.shopserver.enums.Roles;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -23,7 +22,7 @@ public class User {
     private String email;
     private String password;
     private String walletId;
-    private Roles role;
+    private String role;
     private boolean isActive;
 
 }

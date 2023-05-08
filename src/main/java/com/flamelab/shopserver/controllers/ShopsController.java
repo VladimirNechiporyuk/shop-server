@@ -45,8 +45,8 @@ public class ShopsController {
                         authManager.validateAuthToken(authorization, Roles.ADMIN_MERCHANT())));
     }
 
-    @GetMapping("/byOwnerId")
-    public ResponseEntity<?> getAllShopsByOwnerId(@RequestHeader("Authorization") String authorization, @RequestParam String ownerId) {
+    @GetMapping("/byOwnerId/{ownerId}")
+    public ResponseEntity<?> getAllShopsByOwnerId(@RequestHeader("Authorization") String authorization, @PathVariable String ownerId) {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getAllShopsByOwnerId(
@@ -55,20 +55,20 @@ public class ShopsController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchShops(@RequestHeader("Authorization") String authorization, String text) {
+    public ResponseEntity<?> searchShops(@RequestHeader("Authorization") String authorization, @RequestParam String text) {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getAllShopsByTextInParameters(
-                        authManager.validateAuthToken(authorization, Roles.ADMIN_MERCHANT()),
+                        authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER_MERCHANT()),
                         text));
     }
 
     @GetMapping("/products/{shopId}")
-    public ResponseEntity<?> getAllProductsInTheShop(@RequestHeader("Authorization") String authorization, String shopId) {
+    public ResponseEntity<?> getAllProductsInTheShop(@RequestHeader("Authorization") String authorization, @PathVariable String shopId) {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.getAllProductsInTheShop(
-                        authManager.validateAuthToken(authorization, Roles.ADMIN_MERCHANT()),
+                        authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER_MERCHANT()),
                         shopId));
     }
 
@@ -90,43 +90,43 @@ public class ShopsController {
                         productId, newName));
     }
 
-    @PutMapping("/buy/stock/{shopId}")
-    public ResponseEntity<?> buyProductsFromTheStock(@RequestHeader("Authorization") String authorization, @PathVariable String shopId, @RequestParam String productName, @RequestParam int productAmount, @RequestParam double price) {
+    @PostMapping("/buy/shop/stock/{shopId}")
+    public ResponseEntity<?> buyNewProductsShopFromTheStock(@RequestHeader("Authorization") String authorization, @PathVariable String shopId, @RequestParam String productName, @RequestParam int productAmount, @RequestParam double price) {
         return ResponseEntity
-                .status(OK)
-                .body(shopsManager.buyProductsFromTheStock(
+                .status(CREATED)
+                .body(shopsManager.buyNewProductsShopFromTheStock(
                         authManager.validateAuthToken(authorization, Roles.MERCHANT()),
                         shopId, productName, productAmount, price));
     }
 
-    @PutMapping("/buy/{shopId}")
-    public ResponseEntity<?> buyExistsProductsFromTheStock(@RequestHeader("Authorization") String authorization, @PathVariable String shopId, @RequestParam String productId, @RequestParam double productCost, @RequestParam int productAmount) {
+    @PutMapping("/buy/shop/{shopId}/{productId}")
+    public ResponseEntity<?> buyExistsProductsShopFromTheStock(@RequestHeader("Authorization") String authorization, @PathVariable String shopId, @PathVariable String productId, @RequestParam double productCost, @RequestParam int productAmount) {
         return ResponseEntity
                 .status(OK)
-                .body(shopsManager.buyExistsProductsFromTheStock(
+                .body(shopsManager.buyExistsProductsShopFromTheStock(
                         authManager.validateAuthToken(authorization, Roles.MERCHANT()),
                         shopId, productId, productCost, productAmount));
     }
 
-    @PutMapping("/buy/{shopId}/{productId}")
-    public ResponseEntity<?> buyProductsByUser(@RequestHeader("Authorization") String authorization, @PathVariable String shopId, @PathVariable String productId, @RequestParam int productAmount) {
+    @PostMapping("/buy/user/{shopId}/{productId}")
+    public ResponseEntity<?> buyProductsUserFromTheShop(@RequestHeader("Authorization") String authorization, @PathVariable String shopId, @PathVariable String productId, @RequestParam int productAmount) {
         return ResponseEntity
                 .status(OK)
-                .body(shopsManager.buyProductsFromTheShop(
+                .body(shopsManager.buyProductsUserFromTheShop(
                         authManager.validateAuthToken(authorization, Roles.MERCHANT()),
                         shopId, productId, productAmount));
     }
 
-    @PutMapping("/productPrice/{productId}")
+    @PutMapping("/product/price/{productId}")
     public ResponseEntity<?> setProductPrice(@RequestHeader("Authorization") String authorization, @PathVariable String productId, @RequestParam double newPrice) {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.setProductPrice(
-                        authManager.validateAuthToken(authorization, Roles.ADMIN_MERCHANT()),
+                        authManager.validateAuthToken(authorization, Roles.MERCHANT()),
                         productId, newPrice));
     }
 
-    @PutMapping("/product/price/{productId}")
+    @PutMapping("/product/amount/{productId}")
     public ResponseEntity<?> setProductAmount(@RequestHeader("Authorization") String authorization, @PathVariable String productId, @RequestParam int newAmount) {
         return ResponseEntity
                 .status(OK)
@@ -140,11 +140,21 @@ public class ShopsController {
         return ResponseEntity
                 .status(OK)
                 .body(shopsManager.deleteProductAmount(
-                        authManager.validateAuthToken(authorization, Roles.ADMIN()),
+                        authManager.validateAuthToken(authorization, Roles.ADMIN_MERCHANT()),
                         productId, amount));
     }
 
-        @DeleteMapping("/{shopId}")
+    @DeleteMapping("/product/{productId}")
+    public ResponseEntity<?> deleteProduct(@RequestHeader("Authorization") String authorization, @PathVariable String productId) {
+        shopsManager.deleteProduct(
+                authManager.validateAuthToken(authorization, Roles.MERCHANT()),
+                productId);
+        return ResponseEntity
+                .status(OK)
+                .build();
+    }
+
+    @DeleteMapping("/{shopId}")
     public ResponseEntity<?> deleteShop(@RequestHeader("Authorization") String authorization, @PathVariable String shopId) {
         shopsManager.deleteShop(authManager.validateAuthToken(authorization, Roles.ADMIN_MERCHANT()), shopId);
         return ResponseEntity

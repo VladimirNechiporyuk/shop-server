@@ -25,17 +25,19 @@ public interface ShopsManager {
 
     TransferProductDto renameProduct(TransferAuthTokenDto authToken, String shopId, String newName);
 
-    TransferProductDto buyProductsFromTheStock(TransferAuthTokenDto authToken, String shopId, String productName, int productAmount, double price);
+    TransferProductDto buyNewProductsShopFromTheStock(TransferAuthTokenDto authToken, String shopId, String productName, int productAmount, double price);
 
-    TransferProductDto buyExistsProductsFromTheStock(TransferAuthTokenDto authToken, String shopId, String productId, double productCost, int amount);
+    TransferProductDto buyExistsProductsShopFromTheStock(TransferAuthTokenDto authToken, String shopId, String productId, double productCost, int amount);
 
-    TransferProductDto buyProductsFromTheShop(TransferAuthTokenDto authToken, String shopId, String productName, int productAmount);
+    TransferProductDto buyProductsUserFromTheShop(TransferAuthTokenDto authToken, String shopId, String productName, int productAmount);
 
     TransferProductDto setProductPrice(TransferAuthTokenDto authToken, String productId, double newPrice);
 
     TransferProductDto setProductAmount(TransferAuthTokenDto validateAuthToken, String productId, int newAmount);
 
     TransferProductDto deleteProductAmount(TransferAuthTokenDto validateAuthToken, String productId, int amount);
+
+    void deleteProduct(TransferAuthTokenDto validateAuthToken, String productId);
 
     void deleteShop(TransferAuthTokenDto authToken, String shopId);
 }

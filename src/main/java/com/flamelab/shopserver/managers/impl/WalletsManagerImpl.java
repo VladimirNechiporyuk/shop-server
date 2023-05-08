@@ -8,6 +8,7 @@ import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
 import com.flamelab.shopserver.dtos.transfer.TransferWalletDto;
 import com.flamelab.shopserver.entities.Shop;
 import com.flamelab.shopserver.entities.User;
+import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.managers.WalletsManager;
 import com.flamelab.shopserver.mappers.WalletMapper;
 import com.flamelab.shopserver.services.ShopsService;
@@ -18,8 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.flamelab.shopserver.enums.NumberActionType.INCREASE;
-import static com.flamelab.shopserver.enums.NumberActionType.DECREASE;
+import static com.flamelab.shopserver.enums.NumberActionType.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +54,8 @@ public class WalletsManagerImpl implements WalletsManager {
     @Override
     public TransferWalletDto doDepositToShopWallet(TransferAuthTokenDto authToken, CreateShopDepositData createShopDepositData) {
         Shop shop = shopsService.getShopById(createShopDepositData.getShopId());
+        Wallet userWallet = walletsService.getWalletByOwnerId(authToken.getUserId());
+        walletsService.updateWalletAmount(userWallet.getId(), DECREASE, createShopDepositData.getValue());
         return walletMapper.mapToDto(walletsService.updateWalletAmount(shop.getWalletId(), INCREASE, createShopDepositData.getValue()));
     }
 
@@ -66,11 +68,13 @@ public class WalletsManagerImpl implements WalletsManager {
     @Override
     public TransferWalletDto doWithdrawFromShopsWallet(TransferAuthTokenDto authToken, CreateShopWithdrawData createShopWithdrawData) {
         Shop shop = shopsService.getShopById(createShopWithdrawData.getShopId());
+        Wallet userWallet = walletsService.getWalletByOwnerId(authToken.getUserId());
+        walletsService.updateWalletAmount(userWallet.getId(), INCREASE, createShopWithdrawData.getValue());
         return walletMapper.mapToDto(walletsService.updateWalletAmount(shop.getWalletId(), DECREASE, createShopWithdrawData.getValue()));
     }
 
     @Override
     public TransferWalletDto changeSelectedWalletAmount(TransferAuthTokenDto authToken, String walletId, double amount) {
-        return walletMapper.mapToDto(walletsService.setWalletAmount(walletId, amount));
+        return walletMapper.mapToDto(walletsService.updateWalletAmount(walletId, CHANGE, amount));
     }
 }

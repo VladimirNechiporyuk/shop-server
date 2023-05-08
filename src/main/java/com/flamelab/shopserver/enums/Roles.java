@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 public enum Roles {
+
     ADMIN, CUSTOMER, MERCHANT;
 
     public static List<Roles> ADMIN() {

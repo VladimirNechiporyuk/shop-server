@@ -12,10 +12,10 @@ public interface AuthService {
 
     AuthToken validateTokenAndReturn(String token, List<Roles> availableRoles);
 
-    boolean isTokenExists(String email);
+    AuthToken getTokenByEmail(String email);
 
-    void deleteTokenByValue(String token);
+    boolean isTokenExistsByEmail(String email);
 
-    void deleteTokenByEmail(String email);
+    void deleteTokenByTokenId(String tokenId);
 
 }

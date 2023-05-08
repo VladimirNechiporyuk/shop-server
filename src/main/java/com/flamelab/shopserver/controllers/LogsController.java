@@ -19,8 +19,8 @@ public class LogsController {
 
     private final AuthManager authManager;
 
-    @GetMapping("/logText")
-    public ResponseEntity<?> getLogText(@RequestHeader("Authorization") String authorization) {
+    @GetMapping("/logText1")
+    public ResponseEntity<?> getLogText1(@RequestHeader("Authorization") String authorization) {
         return ResponseEntity
                 .status(OK)
                 .body(provideLogText(authManager.validateAuthToken(authorization, ADMIN())));

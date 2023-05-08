@@ -50,4 +50,10 @@ public class TemporaryCodeServiceImpl implements TemporaryCodeService {
         return temporaryCodeRepository.existsByTempCode(tempCode);
     }
 
+    @Override
+    public void deleteTemporaryCode(int tempCode) {
+        TemporaryCode code = getTemporaryCodeByCode(tempCode);
+        temporaryCodeRepository.deleteById(code.getId());
+    }
+
 }
