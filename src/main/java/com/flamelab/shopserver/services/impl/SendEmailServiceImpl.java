@@ -26,12 +26,12 @@ public class SendEmailServiceImpl implements SendEmailService {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
         try {
-            message.setFrom(new InternetAddress(sender, text));
+            message.setFrom(new InternetAddress(sender));
             message.setTo(receiverEmail);
             message.setSubject(subject);
             message.setText(text, true);
             javaMailSender.send(mimeMessage);
-        } catch (MessagingException | UnsupportedEncodingException e) {
+        } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
     }

@@ -15,7 +15,6 @@ import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.managers.UsersManager;
-import com.flamelab.shopserver.mappers.PurchaseOperationMapper;
 import com.flamelab.shopserver.mappers.UsersMapper;
 import com.flamelab.shopserver.services.*;
 import com.flamelab.shopserver.utiles.EmailTextProvider;
@@ -39,9 +38,7 @@ public class UsersManagerImpl implements UsersManager {
     private final WalletsService walletsService;
     private final ShopsService shopsService;
     private final ProductsService productsService;
-    private final PurchaseOperationsService purchaseOperationsService;
     private final UsersMapper usersMapper;
-    private final PurchaseOperationMapper purchaseOperationMapper;
     private final SendEmailService sendEmailService;
     private final EmailTextProvider emailTextProvider;
     private final TemporaryCodeService temporaryCodeService;
@@ -50,9 +47,7 @@ public class UsersManagerImpl implements UsersManager {
 
     @Override
     public TransferUserDto createUser(CreateUserDto createUserDto) {
-        if (!createUserDto.getPassword().equals(createUserDto.getPasswordConfirmation())) {
-            throw new ResourceException(BAD_REQUEST, "Passwords are not equals");
-        }
+        validateNewUserData(createUserDto);
         Wallet wallet = walletsService.createWallet(new CreateWalletDto(START_USER_MONEY));
         User user = usersService.createUser(createUserDto);
         usersService.addWalletToUser(user.getId(), wallet.getId());
@@ -63,6 +58,7 @@ public class UsersManagerImpl implements UsersManager {
 
     @Override
     public TransferUserDto createUserAdmin(TransferAuthTokenDto authToken, CreateUserDto createUserDto) {
+        validateNewUserData(createUserDto);
         return usersMapper.mapToDto(usersService.createUser(createUserDto));
     }
 
@@ -78,7 +74,7 @@ public class UsersManagerImpl implements UsersManager {
             temporaryCodeService.deleteTemporaryCode(tempCodeDto.getTempCode());
             return tempCodeValidationResult;
         } else {
-            throw new ResourceException(BAD_REQUEST, "Entered temporary code is not correct");
+            throw new ResourceException(BAD_REQUEST, "Entered temporary code is not correct.");
         }
     }
 
@@ -149,14 +145,23 @@ public class UsersManagerImpl implements UsersManager {
     @Override
     public void deleteUser(TransferAuthTokenDto authToken, String userId) {
         usersService.deleteUser(userId);
-        if (authToken.getRole().equals(MERCHANT)) {
+        if (authToken.getRole().equals(MERCHANT.name())) {
             List<String> shopIds = shopsService.getAllShopsByOwnerId(userId).stream().map(Shop::getId).toList();
             shopsService.deleteShops(shopIds);
             productsService.deleteProductsByShopIds(shopIds);
         }
-        if (!authToken.getRole().equals(ADMIN)) {
+        if (!authToken.getRole().equals(ADMIN.name())) {
             Wallet userWallet = walletsService.getWalletByOwnerId(userId);
             walletsService.deleteWallet(userWallet.getId());
+        }
+    }
+
+    private void validateNewUserData(CreateUserDto createUserDto) {
+        if (!createUserDto.getPassword().equals(createUserDto.getPasswordConfirmation())) {
+            throw new ResourceException(BAD_REQUEST, "Passwords are not equals.");
+        }
+        if (usersService.isUserExistsByEmail(createUserDto.getEmail())) {
+            throw new ResourceException(BAD_REQUEST, String.format("User with email '%s' already exists on the platform. \nPlease use another email.", createUserDto.getEmail()));
         }
     }
 
@@ -164,10 +169,10 @@ public class UsersManagerImpl implements UsersManager {
         CreateTemporaryCodeDto createTemporaryCodeDto = new CreateTemporaryCodeDto(email, randomDataGenerator.generateTemporaryCode());
         int tempCode = temporaryCodeService.generateTemporaryCode(createTemporaryCodeDto).getTempCode();
         if (usersService.isUserExistsByEmail(email)) {
-//            sendEmailService.sendEmail(
-//                    email,
-//                    "Registration confirmation",
-//                    emailTextProvider.provideConfirmRegistrationText(userId, tempCode));
+            sendEmailService.sendEmail(
+                    email,
+                    "Registration confirmation",
+                    emailTextProvider.provideConfirmRegistrationText(userId, tempCode));
         } else {
             throw new ResourceException(NO_CONTENT, String.format("User with email '%s' does not exists", email));
         }
@@ -177,10 +182,10 @@ public class UsersManagerImpl implements UsersManager {
         CreateTemporaryCodeDto createTemporaryCodeDto = new CreateTemporaryCodeDto(email, randomDataGenerator.generateTemporaryCode());
         int tempCode = temporaryCodeService.generateTemporaryCode(createTemporaryCodeDto).getTempCode();
         if (usersService.isUserExistsByEmail(email)) {
-//            sendEmailService.sendEmail(
-//                    email,
-//                    "Password Recovery",
-//                    emailTextProvider.providePasswordRecoverySendTempCodeText(tempCode));
+            sendEmailService.sendEmail(
+                    email,
+                    "Password Recovery",
+                    emailTextProvider.providePasswordRecoverySendTempCodeText(tempCode));
         } else {
             throw new ResourceException(NO_CONTENT, String.format("User with email '%s' does not exists", email));
         }
