@@ -7,6 +7,7 @@ import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.utiles.RandomDataGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class UsersMapper {
 
     private final RandomDataGenerator randomDataGenerator;
+    private final PasswordEncoder passwordEncoder;
 
     public TransferUserDto mapToDto(User entity) {
         TransferUserDto dto = new TransferUserDto();

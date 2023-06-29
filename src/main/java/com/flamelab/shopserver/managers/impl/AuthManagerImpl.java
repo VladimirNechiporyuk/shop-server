@@ -12,6 +12,7 @@ import com.flamelab.shopserver.services.AuthService;
 import com.flamelab.shopserver.services.UsersService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

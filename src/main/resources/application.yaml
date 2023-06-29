@@ -16,18 +16,18 @@ spring:
     url: jdbc:postgresql://localhost:5432/shop
     username: postgres
     password: postgres
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: shotartinovcourcemanualqa@gmail.com
-    password: rtxshvkmgxlkuazm
-    test-connection: true
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-    sender:
-      email: shop-artinov-manual-qa-no-replay@shop.ua
-      text: no-reply
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: shotartinovcourcemanualqa@gmail.com
+#    password: rtxshvkmgxlkuazm
+#    test-connection: true
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#    sender:
+#      email: shop-artinov-manual-qa-no-replay@shop.ua
+#      text: no-reply

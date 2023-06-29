@@ -39,7 +39,7 @@ public class UsersManagerImpl implements UsersManager {
     private final ShopsService shopsService;
     private final ProductsService productsService;
     private final UsersMapper usersMapper;
-    private final SendEmailService sendEmailService;
+//    private final SendEmailService sendEmailService;
     private final EmailTextProvider emailTextProvider;
     private final TemporaryCodeService temporaryCodeService;
     private final RandomDataGenerator randomDataGenerator;
@@ -169,10 +169,10 @@ public class UsersManagerImpl implements UsersManager {
         CreateTemporaryCodeDto createTemporaryCodeDto = new CreateTemporaryCodeDto(email, randomDataGenerator.generateTemporaryCode());
         int tempCode = temporaryCodeService.generateTemporaryCode(createTemporaryCodeDto).getTempCode();
         if (usersService.isUserExistsByEmail(email)) {
-            sendEmailService.sendEmail(
-                    email,
-                    "Registration confirmation",
-                    emailTextProvider.provideConfirmRegistrationText(userId, tempCode));
+//            sendEmailService.sendEmail(
+//                    email,
+//                    "Registration confirmation",
+//                    emailTextProvider.provideConfirmRegistrationText(userId, tempCode));
         } else {
             throw new ResourceException(NO_CONTENT, String.format("User with email '%s' does not exists", email));
         }
@@ -182,10 +182,10 @@ public class UsersManagerImpl implements UsersManager {
         CreateTemporaryCodeDto createTemporaryCodeDto = new CreateTemporaryCodeDto(email, randomDataGenerator.generateTemporaryCode());
         int tempCode = temporaryCodeService.generateTemporaryCode(createTemporaryCodeDto).getTempCode();
         if (usersService.isUserExistsByEmail(email)) {
-            sendEmailService.sendEmail(
-                    email,
-                    "Password Recovery",
-                    emailTextProvider.providePasswordRecoverySendTempCodeText(tempCode));
+//            sendEmailService.sendEmail(
+//                    email,
+//                    "Password Recovery",
+//                    emailTextProvider.providePasswordRecoverySendTempCodeText(tempCode));
         } else {
             throw new ResourceException(NO_CONTENT, String.format("User with email '%s' does not exists", email));
         }
