@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
     private void validateIsTokenExpire(AuthToken token) {
         if (token.getUsageAmount() >= maxUsageAmount) {
             deleteTokenByTokenId(token.getId());
-            throw new ResourceException(BAD_REQUEST, "Token is expired");
+            throw new ResourceException(UNAUTHORIZED, "Token is expired");
         }
     }
 
