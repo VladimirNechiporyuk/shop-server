@@ -24,7 +24,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthorizationRepository authorizationRepository;
     private final AuthTokenMapper authTokenMapper;
-    private final int maxUsageAmount = 10;
+    private final int maxUsageAmount = 1000;
 
     @Override
     public AuthToken createToken(User user) {
