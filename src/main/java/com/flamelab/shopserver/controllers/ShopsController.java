@@ -68,7 +68,7 @@ public class ShopsController {
     public ResponseEntity<?> searchProducts(@RequestHeader("Authorization") String authorization, @RequestParam String text) {
         return ResponseEntity
                 .status(OK)
-                .body(shopsManager.getAllShopsByTextInParameters(
+                .body(shopsManager.getAllProductsByTextInParameters(
                         authManager.validateAuthToken(authorization, Roles.ADMIN_CUSTOMER_MERCHANT()),
                         text));
     }
