@@ -21,7 +21,7 @@ public class PurchaseOperationMapper {
         TransferPurchaseOperationDto dto = new TransferPurchaseOperationDto();
         dto.setId(entity.getId());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setLastUpdatedDate(entity.getLastUpdatedDate());
+        dto.setLastUpdatedDate(entity.getLastUpdateDate());
         dto.setProductName(entity.getProductName());
         dto.setAmount(entity.getAmount());
         dto.setPrice(entity.getPrice());
@@ -42,7 +42,7 @@ public class PurchaseOperationMapper {
         PurchaseOperation entity = new PurchaseOperation();
         entity.setId(randomDataGenerator.generateId());
         entity.setCreatedDate(LocalDateTime.now());
-        entity.setLastUpdatedDate(LocalDateTime.now());
+        entity.setLastUpdateDate(LocalDateTime.now());
         entity.setProductName(createDto.getProductName());
         entity.setAmount(createDto.getAmount());
         entity.setPrice(createDto.getPrice());

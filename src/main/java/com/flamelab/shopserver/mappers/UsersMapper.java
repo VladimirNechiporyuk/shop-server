@@ -5,7 +5,6 @@ import com.flamelab.shopserver.dtos.transfer.TransferUserDto;
 import com.flamelab.shopserver.entities.User;
 import com.flamelab.shopserver.entities.Wallet;
 import com.flamelab.shopserver.enums.Roles;
-import com.flamelab.shopserver.exceptions.ResourceException;
 import com.flamelab.shopserver.utiles.RandomDataGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,11 +13,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.flamelab.shopserver.enums.Roles.*;
-import static com.flamelab.shopserver.enums.WalletOwnerTypes.ADMIN_OWNER;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +25,7 @@ public class UsersMapper {
         TransferUserDto dto = new TransferUserDto();
         dto.setId(entity.getId());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setLastUpdatedDate(entity.getLastUpdatedDate());
+        dto.setLastUpdatedDate(entity.getLastUpdateDate());
         dto.setUsername(entity.getUsername());
         dto.setEmail(entity.getEmail());
         dto.setWalletId(wallet.getId());
@@ -57,7 +51,7 @@ public class UsersMapper {
         User entity = new User();
         entity.setId(randomDataGenerator.generateId());
         entity.setCreatedDate(LocalDateTime.now());
-        entity.setLastUpdatedDate(LocalDateTime.now());
+        entity.setLastUpdateDate(LocalDateTime.now());
         entity.setUsername(createDto.getName());
         entity.setPassword(createDto.getPassword());
         entity.setEmail(createDto.getEmail());

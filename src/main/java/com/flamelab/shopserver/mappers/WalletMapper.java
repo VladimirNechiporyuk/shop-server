@@ -22,7 +22,7 @@ public class WalletMapper {
         TransferWalletDto dto = new TransferWalletDto();
         dto.setId(entity.getId());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setLastUpdatedDate(entity.getLastUpdatedDate());
+        dto.setLastUpdatedDate(entity.getLastUpdateDate());
         dto.setOwnerId(entity.getOwnerId());
         dto.setOwnerType(WalletOwnerTypes.valueOf(entity.getOwnerType()));
         dto.setAmount(entity.getAmount());
@@ -40,7 +40,7 @@ public class WalletMapper {
         Wallet wallet = new Wallet();
         wallet.setId(randomDataGenerator.generateId());
         wallet.setCreatedDate(LocalDateTime.now());
-        wallet.setLastUpdatedDate(LocalDateTime.now());
+        wallet.setLastUpdateDate(LocalDateTime.now());
         wallet.setAmount(createDto.getAmount());
         return wallet;
     }

@@ -3,7 +3,6 @@ package com.flamelab.shopserver.mappers;
 import com.flamelab.shopserver.dtos.transfer.TransferAuthTokenDto;
 import com.flamelab.shopserver.entities.AuthToken;
 import com.flamelab.shopserver.entities.User;
-import com.flamelab.shopserver.enums.Roles;
 import com.flamelab.shopserver.utiles.RandomDataGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,7 +23,7 @@ public class AuthTokenMapper {
         TransferAuthTokenDto dto = new TransferAuthTokenDto();
         dto.setId(entity.getId());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setLastUpdatedDate(entity.getLastUpdatedDate());
+        dto.setLastUpdatedDate(entity.getLastUpdateDate());
         dto.setUserId(entity.getUserId());
         dto.setToken(entity.getToken());
         dto.setEmail(entity.getEmail());
@@ -42,7 +41,7 @@ public class AuthTokenMapper {
         AuthToken entity = new AuthToken();
         entity.setId(randomDataGenerator.generateId());
         entity.setCreatedDate(LocalDateTime.now());
-        entity.setLastUpdatedDate(LocalDateTime.now());
+        entity.setLastUpdateDate(LocalDateTime.now());
         entity.setUserId(user.getId());
         entity.setToken(randomDataGenerator.generateAuthToken());
         entity.setTokenType(BEARER.getTypeName());

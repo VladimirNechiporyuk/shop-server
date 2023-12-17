@@ -21,7 +21,7 @@ public class ProductMapper {
         TransferProductDto dto = new TransferProductDto();
         dto.setId(entity.getId());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setLastUpdatedDate(entity.getLastUpdatedDate());
+        dto.setLastUpdatedDate(entity.getLastUpdateDate());
         dto.setName(entity.getName());
         dto.setAmount(entity.getAmount());
         dto.setPrice(entity.getPrice());
@@ -38,7 +38,7 @@ public class ProductMapper {
         Product entity = new Product();
         entity.setId(randomDataGenerator.generateId());
         entity.setCreatedDate(LocalDateTime.now());
-        entity.setLastUpdatedDate(LocalDateTime.now());
+        entity.setLastUpdateDate(LocalDateTime.now());
         entity.setOwnerShopId(createDto.getOwnerShopId());
         entity.setName(createDto.getName());
         entity.setAmount(createDto.getAmount());

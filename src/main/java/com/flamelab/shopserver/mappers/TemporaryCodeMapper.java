@@ -21,7 +21,7 @@ public class TemporaryCodeMapper {
         TransferTemporaryCodeDto dto = new TransferTemporaryCodeDto();
         dto.setId(entity.getId());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setLastUpdatedDate(entity.getLastUpdatedDate());
+        dto.setLastUpdatedDate(entity.getLastUpdateDate());
         dto.setTempCode(entity.getTempCode());
         return dto;
     }
@@ -36,7 +36,7 @@ public class TemporaryCodeMapper {
         TemporaryCode entity = new TemporaryCode();
         entity.setId(randomDataGenerator.generateId());
         entity.setCreatedDate(LocalDateTime.now());
-        entity.setLastUpdatedDate(LocalDateTime.now());
+        entity.setLastUpdateDate(LocalDateTime.now());
         entity.setTempCode(createDto.getTempCode());
         entity.setEmail(createDto.getEmail());
         return entity;
