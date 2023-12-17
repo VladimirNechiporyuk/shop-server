@@ -12,28 +12,28 @@ import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 
-//@Service
-//@RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class SendEmailServiceImpl implements SendEmailService {
 
     @Value("\\${spring.mail.sender.email}")
     private String sender;
 
-//    private final JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender;
 
     @Override
     public void sendEmail(String receiverEmail, String subject, String text) {
-//        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-//        MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
-//        try {
-//            message.setFrom(new InternetAddress(sender));
-//            message.setTo(receiverEmail);
-//            message.setSubject(subject);
-//            message.setText(text, true);
-//            javaMailSender.send(mimeMessage);
-//        } catch (MessagingException e) {
-//            throw new RuntimeException(e);
-//        }
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
+        try {
+            message.setFrom(new InternetAddress(sender));
+            message.setTo(receiverEmail);
+            message.setSubject(subject);
+            message.setText(text, true);
+            javaMailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
